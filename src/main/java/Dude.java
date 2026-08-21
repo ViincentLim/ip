@@ -17,6 +17,7 @@ public class Dude {
     private static final String RESET = "\u001B[0m";
 
     private static final HashMap<String, String> USAGE_MESSAGES = new HashMap<>(Map.of(
+            "delete", "Usage: delete <task number>",
             "mark", "Usage: mark <task number>",
             "unmark", "Usage: unmark <task number>",
             "todo", "Usage: todo <task details>",
@@ -64,6 +65,9 @@ public class Dude {
                     case "mark", "unmark":
                         updateTask(border, tasks, action, argument);
                         break;
+                    case "delete":
+                        deleteTask(border, tasks, argument);
+                        break;
                     case "todo", "deadline", "event":
                         addTask(border, tasks, action, argument);
                         break;
@@ -80,22 +84,7 @@ public class Dude {
     /** Marks or unmarks the task identified by a one-based task number. */
     private static void updateTask(String border, ArrayList<Task> tasks,
                                    String action, String argument) throws UsageException {
-        if (argument == null || argument.isBlank()) {
-            throw usageError(action, "task number", "<missing>", "an integer", "<task number>");
-        }
-
-        int taskNumber;
-        try {
-            taskNumber = Integer.parseInt(argument);
-        } catch (NumberFormatException e) {
-            throw usageError(action, "task number", argument, "an integer", "<task number>", e);
-        }
-
-        int taskIndex = taskNumber - 1;
-        if (taskIndex < 0 || taskIndex >= tasks.size()) {
-            throw usageError(action, "task number", argument,
-                    "an existing task number", "<task number>");
-        }
+        int taskIndex = parseTaskIndex(action, tasks, argument);
 
         Task task = tasks.get(taskIndex);
         String[] messageLines = switch (action) {
@@ -116,6 +105,38 @@ public class Dude {
             default -> throw new IllegalArgumentException("Unsupported task action: " + action);
         };
         printBox(border, messageLines);
+    }
+
+    /** Removes the task identified by a one-based task number. */
+    private static void deleteTask(String border, ArrayList<Task> tasks, String argument)
+            throws UsageException {
+        int taskIndex = parseTaskIndex("delete", tasks, argument);
+        Task task = tasks.remove(taskIndex);
+        printBox(border,
+                "Noted. I've removed this task:",
+                "  " + task,
+                String.format("Now you have %d tasks in the list.", tasks.size()));
+    }
+
+    private static int parseTaskIndex(String action, ArrayList<Task> tasks, String argument)
+            throws UsageException {
+        if (argument == null || argument.isBlank()) {
+            throw usageError(action, "task number", "<missing>", "an integer", "<task number>");
+        }
+
+        int taskNumber;
+        try {
+            taskNumber = Integer.parseInt(argument);
+        } catch (NumberFormatException e) {
+            throw usageError(action, "task number", argument, "an integer", "<task number>", e);
+        }
+
+        int taskIndex = taskNumber - 1;
+        if (taskIndex < 0 || taskIndex >= tasks.size()) {
+            throw usageError(action, "task number", argument,
+                    "an existing task number", "<task number>");
+        }
+        return taskIndex;
     }
 
     /** Creates and stores a task from a typed task command. */
