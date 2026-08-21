@@ -79,8 +79,9 @@ def append_session(text: str, records: list[dict[str, str]]) -> None:
 
 
 def comparable_output(output: str) -> str:
-    """Ignore box-padding spaces while preserving every visible output line."""
-    return "\n".join(line.rstrip() for line in output.splitlines())
+    """Ignore ANSI styling and box-padding spaces while preserving output lines."""
+    without_ansi = re.sub(r"\x1b\[[0-9;]*m", "", output)
+    return "\n".join(line.rstrip() for line in without_ansi.splitlines())
 
 
 def main() -> int:
