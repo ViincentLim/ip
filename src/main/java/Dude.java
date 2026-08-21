@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /** Runs the DUDE command-line application. */
@@ -18,12 +19,12 @@ public class Dude {
         printBox(border, banner, "Hello! I'm DUDE.", "What can I do for you?");
 
         try (Scanner scanner = new Scanner(System.in)) {
-            onUpdate(scanner, border);
+            onUpdate(scanner, border, new ArrayList<>());
         }
     }
 
     /** Processes commands until the user enters the exit command or input ends. */
-    private static void onUpdate(Scanner scanner, String border) {
+    private static void onUpdate(Scanner scanner, String border, ArrayList<String> tasks) {
         while (scanner.hasNextLine()) {
             String command = scanner.nextLine();
 
@@ -31,11 +32,24 @@ public class Dude {
                 case "bye":
                     printBox(border, "Bye. Hope to see you again soon!");
                     return;
+                case "list":
+                    printTaskList(border, tasks);
+                    break;
                 default:
-                    printBox(border, command);
+                    tasks.add(command);
+                    printBox(border, "added: " + command);
                     break;
             }
         }
+    }
+
+    /** Prints all stored tasks with their one-based positions. */
+    private static void printTaskList(String border, ArrayList<String> tasks) {
+        String[] taskLines = new String[tasks.size()];
+        for (int i = 0; i < tasks.size(); i++) {
+            taskLines[i] = (i + 1) + ". " + tasks.get(i);
+        }
+        printBox(border, taskLines);
     }
 
     /** Returns the terminal width, or a default width when it cannot be determined. */
