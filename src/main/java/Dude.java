@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.stream.IntStream;
 
 /** Runs the DUDE command-line application. */
 public class Dude {
@@ -24,31 +25,74 @@ public class Dude {
     }
 
     /** Processes commands until the user enters the exit command or input ends. */
-    private static void onUpdate(Scanner scanner, String border, ArrayList<String> tasks) {
+    private static void onUpdate(Scanner scanner, String border, ArrayList<Task> tasks) {
         while (scanner.hasNextLine()) {
-            String command = scanner.nextLine();
+            String input = scanner.nextLine();
+            String[] commandParts = input.trim().split("\\s+", 2);
+            String action = commandParts[0];
+            String argument = commandParts.length > 1 ? commandParts[1] : null;
 
-            switch (command) {
+            switch (action) {
                 case "bye":
                     printBox(border, "Bye. Hope to see you again soon!");
                     return;
                 case "list":
                     printTaskList(border, tasks);
                     break;
+                case "mark", "unmark":
+                    updateTask(border, tasks, action, argument);
+                    break;
                 default:
-                    tasks.add(command);
-                    printBox(border, "added: " + command);
+                    tasks.add(new Task(input));
+                    printBox(border, "added: " + input);
                     break;
             }
         }
     }
 
-    /** Prints all stored tasks with their one-based positions. */
-    private static void printTaskList(String border, ArrayList<String> tasks) {
-        String[] taskLines = new String[tasks.size()];
-        for (int i = 0; i < tasks.size(); i++) {
-            taskLines[i] = (i + 1) + ". " + tasks.get(i);
+    /** Marks or unmarks the task identified by a one-based task number. */
+    private static void updateTask(String border, ArrayList<Task> tasks,
+                                   String action, String argument) {
+        if (argument == null || argument.isBlank()) {
+            printBox(border, "Usage: " + action + " <task number>");
+            return;
         }
+
+        int taskNumber;
+        try {
+            taskNumber = Integer.parseInt(argument);
+        } catch (NumberFormatException e) {
+            printBox(border, "Task number must be a number.");
+            return;
+        }
+
+        int taskIndex = taskNumber - 1;
+        if (taskIndex < 0 || taskIndex >= tasks.size()) {
+            printBox(border, "Task number is out of range.");
+            return;
+        }
+
+        Task task = tasks.get(taskIndex);
+        String message = switch (action) {
+            case "mark" -> {
+                task.markAsDone();
+                yield String.format("Marked task %d as done.", taskNumber);
+            }
+            case "unmark" -> {
+                task.markAsNotDone();
+                yield String.format("Unmarked task %d.", taskNumber);
+            }
+            default -> throw new IllegalArgumentException("Unsupported task action: " + action);
+        };
+        printBox(border, message);
+    }
+
+    /** Prints all stored tasks with their one-based positions. */
+    private static void printTaskList(String border, ArrayList<Task> tasks) {
+        String[] taskLines = IntStream.range(0, tasks.size())
+                .mapToObj(i -> String.format("%d. [%s] %s", i + 1,
+                        tasks.get(i).getStatusIcon(), tasks.get(i).getDescription()))
+                .toArray(String[]::new);
         printBox(border, taskLines);
     }
 
