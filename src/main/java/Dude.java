@@ -79,14 +79,14 @@ public class Dude {
                 task.markAsDone();
                 yield new String[] {
                     "Nice! I've marked this task as done:",
-                    String.format("  [%s] %s", task.getStatusIcon(), task.getDescription())
+                    "  " + task
                 };
             }
             case "unmark" -> {
                 task.markAsNotDone();
                 yield new String[] {
                     "OK, I've marked this task as not done yet:",
-                    String.format("  [%s] %s", task.getStatusIcon(), task.getDescription())
+                    "  " + task
                 };
             }
             default -> throw new IllegalArgumentException("Unsupported task action: " + action);
@@ -99,8 +99,7 @@ public class Dude {
         String[] taskLines = Stream.concat(
                 Stream.of("Here are the tasks in your list:"),
                 IntStream.range(0, tasks.size())
-                .mapToObj(i -> String.format("%d.[%s] %s", i + 1,
-                        tasks.get(i).getStatusIcon(), tasks.get(i).getDescription())))
+                .mapToObj(i -> String.format("%d.%s", i + 1, tasks.get(i))))
                 .toArray(String[]::new);
         printBox(border, taskLines);
     }

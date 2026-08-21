@@ -7,12 +7,17 @@ public class Task {
         this.isDone = false;
     }
 
-    public String getStatusIcon() {
+    private String getStatusIcon() {
         return isDone ? "X" : " ";
     }
 
     public String getDescription() {
         return description;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[%s] %s", getStatusIcon(), description);
     }
 
     public void markAsDone() {
