@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /** Runs the DUDE command-line application. */
 public class Dude {
@@ -73,25 +74,33 @@ public class Dude {
         }
 
         Task task = tasks.get(taskIndex);
-        String message = switch (action) {
+        String[] messageLines = switch (action) {
             case "mark" -> {
                 task.markAsDone();
-                yield String.format("Marked task %d as done.", taskNumber);
+                yield new String[] {
+                    "Nice! I've marked this task as done:",
+                    String.format("  [%s] %s", task.getStatusIcon(), task.getDescription())
+                };
             }
             case "unmark" -> {
                 task.markAsNotDone();
-                yield String.format("Unmarked task %d.", taskNumber);
+                yield new String[] {
+                    "OK, I've marked this task as not done yet:",
+                    String.format("  [%s] %s", task.getStatusIcon(), task.getDescription())
+                };
             }
             default -> throw new IllegalArgumentException("Unsupported task action: " + action);
         };
-        printBox(border, message);
+        printBox(border, messageLines);
     }
 
     /** Prints all stored tasks with their one-based positions. */
     private static void printTaskList(String border, ArrayList<Task> tasks) {
-        String[] taskLines = IntStream.range(0, tasks.size())
-                .mapToObj(i -> String.format("%d. [%s] %s", i + 1,
-                        tasks.get(i).getStatusIcon(), tasks.get(i).getDescription()))
+        String[] taskLines = Stream.concat(
+                Stream.of("Here are the tasks in your list:"),
+                IntStream.range(0, tasks.size())
+                .mapToObj(i -> String.format("%d.[%s] %s", i + 1,
+                        tasks.get(i).getStatusIcon(), tasks.get(i).getDescription())))
                 .toArray(String[]::new);
         printBox(border, taskLines);
     }
