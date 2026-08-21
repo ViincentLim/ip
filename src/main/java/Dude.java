@@ -1,6 +1,4 @@
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -15,14 +13,6 @@ import task.Todo;
 public class Dude {
     private static final String RED = "\u001B[31m";
     private static final String RESET = "\u001B[0m";
-
-    private static final HashMap<String, String> USAGE_MESSAGES = new HashMap<>(Map.of(
-            "delete", "Usage: delete <task number>",
-            "mark", "Usage: mark <task number>",
-            "unmark", "Usage: unmark <task number>",
-            "todo", "Usage: todo <task details>",
-            "deadline", "Usage: deadline <description> /by <date or time>",
-            "event", "Usage: event <description> /from <start> /to <end>"));
     private static final String TASK_USAGE = "Usage: todo <task details> | deadline <description> /by <date or time>"
             + " | event <description> /from <start> /to <end>";
 
@@ -55,25 +45,28 @@ public class Dude {
             String argument = commandParts.length > 1 ? commandParts[1] : null;
 
             try {
-                switch (action) {
-                    case "bye":
+                Command command = Command.parse(action);
+                if (command == null) {
+                    throw new UsageException(action, "command", action,
+                            "todo, deadline, or event", TASK_USAGE, "<task type>");
+                }
+
+                switch (command) {
+                    case BYE:
                         printBox(border, "Bye. Hope to see you again soon!");
                         return;
-                    case "list":
+                    case LIST:
                         printTaskList(border, tasks);
                         break;
-                    case "mark", "unmark":
-                        updateTask(border, tasks, action, argument);
+                    case MARK, UNMARK:
+                        updateTask(border, tasks, command, argument);
                         break;
-                    case "delete":
+                    case DELETE:
                         deleteTask(border, tasks, argument);
                         break;
-                    case "todo", "deadline", "event":
-                        addTask(border, tasks, action, argument);
+                    case TODO, DEADLINE, EVENT:
+                        addTask(border, tasks, command, argument);
                         break;
-                    default:
-                        throw new UsageException(action, "command", action,
-                                "todo, deadline, or event", TASK_USAGE, "<task type>");
                 }
             } catch (UsageException e) {
                 printError(border, e);
@@ -83,26 +76,26 @@ public class Dude {
 
     /** Marks or unmarks the task identified by a one-based task number. */
     private static void updateTask(String border, ArrayList<Task> tasks,
-                                   String action, String argument) throws UsageException {
-        int taskIndex = parseTaskIndex(action, tasks, argument);
+                                   Command command, String argument) throws UsageException {
+        int taskIndex = parseTaskIndex(command, tasks, argument);
 
         Task task = tasks.get(taskIndex);
-        String[] messageLines = switch (action) {
-            case "mark" -> {
+        String[] messageLines = switch (command) {
+            case MARK -> {
                 task.markAsDone();
                 yield new String[] {
                     "Nice! I've marked this task as done:",
                     "  " + task
                 };
             }
-            case "unmark" -> {
+            case UNMARK -> {
                 task.markAsNotDone();
                 yield new String[] {
                     "OK, I've marked this task as not done yet:",
                     "  " + task
                 };
             }
-            default -> throw new IllegalArgumentException("Unsupported task action: " + action);
+            default -> throw new IllegalArgumentException("Unsupported task action: " + command);
         };
         printBox(border, messageLines);
     }
@@ -110,7 +103,7 @@ public class Dude {
     /** Removes the task identified by a one-based task number. */
     private static void deleteTask(String border, ArrayList<Task> tasks, String argument)
             throws UsageException {
-        int taskIndex = parseTaskIndex("delete", tasks, argument);
+        int taskIndex = parseTaskIndex(Command.DELETE, tasks, argument);
         Task task = tasks.remove(taskIndex);
         printBox(border,
                 "Noted. I've removed this task:",
@@ -118,22 +111,22 @@ public class Dude {
                 String.format("Now you have %d tasks in the list.", tasks.size()));
     }
 
-    private static int parseTaskIndex(String action, ArrayList<Task> tasks, String argument)
+    private static int parseTaskIndex(Command command, ArrayList<Task> tasks, String argument)
             throws UsageException {
         if (argument == null || argument.isBlank()) {
-            throw usageError(action, "task number", "<missing>", "an integer", "<task number>");
+            throw usageError(command, "task number", "<missing>", "an integer", "<task number>");
         }
 
         int taskNumber;
         try {
             taskNumber = Integer.parseInt(argument);
         } catch (NumberFormatException e) {
-            throw usageError(action, "task number", argument, "an integer", "<task number>", e);
+            throw usageError(command, "task number", argument, "an integer", "<task number>", e);
         }
 
         int taskIndex = taskNumber - 1;
         if (taskIndex < 0 || taskIndex >= tasks.size()) {
-            throw usageError(action, "task number", argument,
+            throw usageError(command, "task number", argument,
                     "an existing task number", "<task number>");
         }
         return taskIndex;
@@ -141,20 +134,20 @@ public class Dude {
 
     /** Creates and stores a task from a typed task command. */
     private static void addTask(String border, ArrayList<Task> tasks,
-                                String action, String argument) throws UsageException {
+                                Command command, String argument) throws UsageException {
         Task task;
-        switch (action) {
-            case "todo":
+        switch (command) {
+            case TODO:
                 task = Todo.fromInput(argument);
                 break;
-            case "deadline":
+            case DEADLINE:
                 task = Deadline.fromInput(argument);
                 break;
-            case "event":
+            case EVENT:
                 task = Event.fromInput(argument);
                 break;
         default:
-            throw new IllegalArgumentException("Unsupported task type: " + action);
+            throw new IllegalArgumentException("Unsupported task type: " + command);
         }
 
         tasks.add(task);
@@ -164,18 +157,18 @@ public class Dude {
                 String.format("Now you have %d tasks in the list.", tasks.size()));
     }
 
-    private static UsageException usageError(String action, String fieldName,
+    private static UsageException usageError(Command command, String fieldName,
                                              String actualValue, String expectedType,
                                              String usageToken) {
-        return new UsageException(action, fieldName, actualValue, expectedType,
-                USAGE_MESSAGES.get(action), usageToken);
+        return new UsageException(command.getWord(), fieldName, actualValue, expectedType,
+                command.getUsageMessage(), usageToken);
     }
 
-    private static UsageException usageError(String action, String fieldName,
+    private static UsageException usageError(Command command, String fieldName,
                                              String actualValue, String expectedType,
                                              String usageToken, Throwable cause) {
-        return new UsageException(action, fieldName, actualValue, expectedType,
-                USAGE_MESSAGES.get(action), usageToken, cause);
+        return new UsageException(command.getWord(), fieldName, actualValue, expectedType,
+                command.getUsageMessage(), usageToken, cause);
     }
 
     /** Prints a customized error and the usage message for an invalid command. */
