@@ -1,0 +1,42 @@
+public class Dude {
+    public static void main(String[] args) {
+        String banner = "██████╗  ██╗   ██╗ ██████╗  ███████╗\n"
+                + "██╔══██╗ ██║   ██║ ██╔══██╗ ██╔════╝\n"
+                + "██║  ██║ ██║   ██║ ██║  ██║ █████╗\n"
+                + "██║  ██║ ██║   ██║ ██║  ██║ ██╔══╝\n"
+                + "██████╔╝ ╚██████╔╝╚██████╔╝ ███████╗\n"
+                + "╚═════╝   ╚═════╝ ╚══════╝  ╚══════╝";
+
+        int width = getTerminalWidth();
+        String border = "─".repeat(width);
+
+        printBox(border, banner, "Hello! I'm DUDE.", "What can I do for you?");
+        printBox(border, "Bye. Hope to see you again soon!");
+    }
+
+    private static int getTerminalWidth() {
+        try {
+            var console = System.console();
+            if (console != null) {
+                var method = console.getClass().getMethod("getWidth");
+                return (int) method.invoke(console);
+            }
+        } catch (Exception ignored) {
+        }
+        return 60;
+    }
+
+    private static void printBox(String border, String... lines) {
+        System.out.println(border);
+        for (String line : lines) {
+            for (String part : line.split("\n")) {
+                System.out.println(padRight(part, border.length()));
+            }
+        }
+        System.out.println(border);
+    }
+
+    private static String padRight(String s, int length) {
+        return s.length() >= length ? s : s + " ".repeat(length - s.length());
+    }
+}
