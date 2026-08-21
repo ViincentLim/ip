@@ -5,14 +5,25 @@ import java.util.Scanner;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import exception.UsageException;
+import task.Deadline;
+import task.Event;
+import task.Task;
+import task.Todo;
+
 /** Runs the DUDE command-line application. */
 public class Dude {
+    private static final String RED = "\u001B[31m";
+    private static final String RESET = "\u001B[0m";
+
     private static final HashMap<String, String> USAGE_MESSAGES = new HashMap<>(Map.of(
             "mark", "Usage: mark <task number>",
             "unmark", "Usage: unmark <task number>",
             "todo", "Usage: todo <task details>",
             "deadline", "Usage: deadline <description> /by <date or time>",
             "event", "Usage: event <description> /from <start> /to <end>"));
+    private static final String TASK_USAGE = "Usage: todo <task details> | deadline <description> /by <date or time>"
+            + " | event <description> /from <start> /to <end>";
 
     /** Starts the application and processes commands entered by the user. */
     public static void main(String[] args) {
@@ -42,47 +53,48 @@ public class Dude {
             String action = commandParts[0];
             String argument = commandParts.length > 1 ? commandParts[1] : null;
 
-            switch (action) {
-                case "bye":
-                    printBox(border, "Bye. Hope to see you again soon!");
-                    return;
-                case "list":
-                    printTaskList(border, tasks);
-                    break;
-                case "mark", "unmark":
-                    updateTask(border, tasks, action, argument);
-                    break;
-                case "todo", "deadline", "event":
-                    addTask(border, tasks, action, argument);
-                    break;
-                default:
-                    tasks.add(new Task(input));
-                    printBox(border, "added: " + input);
-                    break;
+            try {
+                switch (action) {
+                    case "bye":
+                        printBox(border, "Bye. Hope to see you again soon!");
+                        return;
+                    case "list":
+                        printTaskList(border, tasks);
+                        break;
+                    case "mark", "unmark":
+                        updateTask(border, tasks, action, argument);
+                        break;
+                    case "todo", "deadline", "event":
+                        addTask(border, tasks, action, argument);
+                        break;
+                    default:
+                        throw new UsageException(action, "command", action,
+                                "todo, deadline, or event", TASK_USAGE, "<task type>");
+                }
+            } catch (UsageException e) {
+                printError(border, e);
             }
         }
     }
 
     /** Marks or unmarks the task identified by a one-based task number. */
     private static void updateTask(String border, ArrayList<Task> tasks,
-                                   String action, String argument) {
+                                   String action, String argument) throws UsageException {
         if (argument == null || argument.isBlank()) {
-            printUsage(border, action);
-            return;
+            throw usageError(action, "task number", "<missing>", "an integer", "<task number>");
         }
 
         int taskNumber;
         try {
             taskNumber = Integer.parseInt(argument);
         } catch (NumberFormatException e) {
-            printBox(border, "Task number must be a number.");
-            return;
+            throw usageError(action, "task number", argument, "an integer", "<task number>", e);
         }
 
         int taskIndex = taskNumber - 1;
         if (taskIndex < 0 || taskIndex >= tasks.size()) {
-            printBox(border, "Task number is out of range.");
-            return;
+            throw usageError(action, "task number", argument,
+                    "an existing task number", "<task number>");
         }
 
         Task task = tasks.get(taskIndex);
@@ -108,38 +120,18 @@ public class Dude {
 
     /** Creates and stores a task from a typed task command. */
     private static void addTask(String border, ArrayList<Task> tasks,
-                                String action, String argument) {
-        if (argument == null || argument.isBlank()) {
-            printUsage(border, action);
-            return;
-        }
-
+                                String action, String argument) throws UsageException {
         Task task;
         switch (action) {
-        case "todo":
-            task = new Todo(argument);
-            break;
-        case "deadline":
-            String[] deadlineParts = splitAt(argument, "/by");
-            if (deadlineParts == null) {
-                printUsage(border, action);
-                return;
-            }
-            task = new Deadline(deadlineParts[0], deadlineParts[1]);
-            break;
-        case "event":
-            String[] eventParts = splitAt(argument, "/from");
-            if (eventParts == null) {
-                printUsage(border, action);
-                return;
-            }
-            String[] timeParts = splitAt(eventParts[1], "/to");
-            if (timeParts == null) {
-                printUsage(border, action);
-                return;
-            }
-            task = new Event(eventParts[0], timeParts[0], timeParts[1]);
-            break;
+            case "todo":
+                task = Todo.fromInput(argument);
+                break;
+            case "deadline":
+                task = Deadline.fromInput(argument);
+                break;
+            case "event":
+                task = Event.fromInput(argument);
+                break;
         default:
             throw new IllegalArgumentException("Unsupported task type: " + action);
         }
@@ -151,20 +143,29 @@ public class Dude {
                 String.format("Now you have %d tasks in the list.", tasks.size()));
     }
 
-    /** Prints the usage message associated with an action. */
-    private static void printUsage(String border, String action) {
-        printBox(border, USAGE_MESSAGES.get(action));
+    private static UsageException usageError(String action, String fieldName,
+                                             String actualValue, String expectedType,
+                                             String usageToken) {
+        return new UsageException(action, fieldName, actualValue, expectedType,
+                USAGE_MESSAGES.get(action), usageToken);
     }
 
-    /** Splits task details at a marker and trims both resulting parts. */
-    private static String[] splitAt(String input, String marker) {
-        int markerIndex = input.indexOf(marker);
-        if (markerIndex <= 0 || markerIndex + marker.length() >= input.length()) {
-            return null;
-        }
-        String before = input.substring(0, markerIndex).trim();
-        String after = input.substring(markerIndex + marker.length()).trim();
-        return before.isEmpty() || after.isEmpty() ? null : new String[] {before, after};
+    private static UsageException usageError(String action, String fieldName,
+                                             String actualValue, String expectedType,
+                                             String usageToken, Throwable cause) {
+        return new UsageException(action, fieldName, actualValue, expectedType,
+                USAGE_MESSAGES.get(action), usageToken, cause);
+    }
+
+    /** Prints a customized error and the usage message for an invalid command. */
+    private static void printError(String border, UsageException e) {
+        String usage = e.getUsageMessage().replace(
+                e.getUsageToken(), RED + e.getUsageToken() + RESET);
+        printBox(border,
+                String.format("Error: invalid %s %s for %s.", e.getFieldName(),
+                        e.getActualValue(), e.getAction()),
+                String.format("Expected: %s.", e.getExpectedType()),
+                usage);
     }
 
     /** Prints all stored tasks with their one-based positions. */
