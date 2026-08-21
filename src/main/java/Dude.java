@@ -161,9 +161,19 @@ public class Dude {
     private static void printError(String border, UsageException e) {
         String usage = e.getUsageMessage().replace(
                 e.getUsageToken(), RED + e.getUsageToken() + RESET);
+        String actualValue = formatActualValue(e.getActualValue());
+
+        if ("command".equals(e.getFieldName())) {
+            printBox(border,
+                    String.format("Error: invalid command %s.", actualValue),
+                    String.format("Expected: %s.", e.getExpectedType()),
+                    usage);
+            return;
+        }
+
         printBox(border,
                 String.format("Error: invalid %s %s for %s.", e.getFieldName(),
-                        e.getActualValue(), e.getAction()),
+                        actualValue, e.getAction()),
                 String.format("Expected: %s.", e.getExpectedType()),
                 usage);
     }
@@ -205,5 +215,12 @@ public class Dude {
     /** Returns the supplied text padded with spaces to the requested length. */
     private static String padRight(String s, int length) {
         return s.length() >= length ? s : s + " ".repeat(length - s.length());
+    }
+
+    private static String formatActualValue(String actualValue) {
+        if (actualValue == null || actualValue.equals("<missing>")) {
+            return "<missing>";
+        }
+        return String.format("\"%s\"", actualValue);
     }
 }
