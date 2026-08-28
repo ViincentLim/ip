@@ -1,101 +1,83 @@
+import exception.UsageException;
+import storage.Storage;
+import task.Task;
+import task.TaskList;
+
 /**
- * Represents a command accepted by the DUDE command-line application.
+ * An executable command entered by the user.
  */
-public enum Command {
+public abstract class Command {
     /**
-     * Terminates the application.
+     * Raw argument supplied to this command.
      */
-    BYE("bye", null),
-    /**
-     * Displays all tasks.
-     */
-    LIST("list", null),
-    /**
-     * Displays deadlines and events occurring on a date.
-     */
-    ON("on", "Usage: on <yyyy-MM-dd>"),
-    /**
-     * Marks a task as completed.
-     */
-    MARK("mark", "Usage: mark <task number>"),
-    /**
-     * Marks a task as not completed.
-     */
-    UNMARK("unmark", "Usage: unmark <task number>"),
-    /**
-     * Removes a task.
-     */
-    DELETE("delete", "Usage: delete <task number>"),
-    /**
-     * Creates a todo task.
-     */
-    TODO("todo", "Usage: todo <task details>"),
-    /**
-     * Creates a deadline task.
-     */
-    DEADLINE("deadline", "Usage: deadline <description> /by <date or time>"),
-    /**
-     * Creates an event task.
-     */
-    EVENT("event", "Usage: event <description> /from <start> /to <end>");
+    protected final String argument;
 
     /**
-     * Text used to identify this command in user input.
-     */
-    private final String word;
-
-    /**
-     * Usage message displayed when this command receives invalid input.
-     */
-    private final String usageMessage;
-
-    /**
-     * Creates a command with its input word and usage message.
+     * Creates a command with its raw argument.
      *
-     * @param word         Text used to identify the command.
-     * @param usageMessage Usage message displayed for invalid command input.
+     * @param argument Raw argument, or null when absent.
      */
-    Command(String word, String usageMessage) {
-        this.word = word;
-        this.usageMessage = usageMessage;
+    protected Command(String argument) {
+        this.argument = argument;
     }
 
     /**
-     * Returns the command represented by the supplied input word, or null if it is unknown.
+     * Executes this command.
      *
-     * @param word Input word to parse.
-     * @return Matching command, or null when the word is unknown.
+     * @param tasks Application task list.
+     * @param ui User-interface handler.
+     * @param storage Persistence handler.
+     * @throws UsageException If the command argument is invalid.
      */
-    public static Command parse(String word) {
-        return switch (word) {
-            case "bye" -> BYE;
-            case "list" -> LIST;
-            case "on" -> ON;
-            case "mark" -> MARK;
-            case "unmark" -> UNMARK;
-            case "delete" -> DELETE;
-            case "todo" -> TODO;
-            case "deadline" -> DEADLINE;
-            case "event" -> EVENT;
-            default -> null;
-        };
+    public abstract void execute(TaskList tasks, Ui ui, Storage storage)
+            throws UsageException;
+
+    /**
+     * Returns whether executing this command should terminate the application.
+     *
+     * @return True only for the exit command.
+     */
+    public boolean isExit() {
+        return false;
     }
 
     /**
-     * Returns the input word associated with this command.
+     * Parses a one-based task number and converts it to a zero-based index.
      *
-     * @return Input word associated with this command.
+     * @param tasks Application task list.
+     * @param commandType Command whose argument is being parsed.
+     * @return Zero-based task index.
+     * @throws UsageException If the argument is not a valid task number.
      */
-    public String getWord() {
-        return word;
+    protected int parseTaskIndex(TaskList tasks, CommandType commandType)
+            throws UsageException {
+        return Parser.parseTaskIndex(commandType, argument, tasks.size());
     }
 
     /**
-     * Returns the usage message associated with this command.
+     * Saves the current task list and reports failures through the UI.
      *
-     * @return Usage message associated with this command.
+     * @param tasks Application task list.
+     * @param ui User-interface handler.
+     * @param storage Persistence handler.
      */
-    public String getUsageMessage() {
-        return usageMessage;
+    protected void save(TaskList tasks, Ui ui, Storage storage) {
+        try {
+            storage.saveTasks(tasks);
+        } catch (java.io.IOException exception) {
+            ui.showSavingError();
+        }
+    }
+
+    /**
+     * Adds a task and displays the standard confirmation.
+     *
+     * @param task Task to add.
+     * @param tasks Application task list.
+     * @param ui User-interface handler.
+     */
+    protected static void addAndShow(Task task, TaskList tasks, Ui ui) {
+        tasks.add(task);
+        ui.showAddedTask(task, tasks.size());
     }
 }

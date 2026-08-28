@@ -15,6 +15,7 @@ import task.Deadline;
 import task.Event;
 import task.Task;
 import task.TaskDate;
+import task.TaskList;
 import task.Todo;
 
 /**
@@ -213,21 +214,21 @@ public class Storage {
      * @return Tasks reconstructed from the data file.
      * @throws IOException If the data directory or file cannot be accessed.
      */
-    public ArrayList<Task> loadTasks() throws IOException {
+    public TaskList loadTasks() throws IOException {
         Files.createDirectories(DATA_FILE.getParent());
 
         if (Files.exists(DATA_FILE)) {
-            return readTasks(DATA_FILE);
+            return new TaskList(readTasks(DATA_FILE));
         }
 
         if (Files.exists(LEGACY_DATA_FILE)) {
             ArrayList<Task> tasks = readTasks(LEGACY_DATA_FILE);
-            saveTasks(tasks);
-            return tasks;
+            saveTasks(new TaskList(tasks));
+            return new TaskList(tasks);
         }
 
         Files.createFile(DATA_FILE);
-        return new ArrayList<>();
+        return new TaskList();
     }
 
     /**
@@ -236,12 +237,12 @@ public class Storage {
      * @param tasks Tasks to persist.
      * @throws IOException If the data directory or file cannot be accessed.
      */
-    public void saveTasks(List<Task> tasks) throws IOException {
+    public void saveTasks(TaskList tasks) throws IOException {
         Files.createDirectories(DATA_FILE.getParent());
         Path temporaryFile = Files.createTempFile(DATA_FILE.getParent(), "duke", ".tmp");
 
         try {
-            List<String> lines = tasks.stream()
+            List<String> lines = tasks.asList().stream()
                     .map(Storage::serializeTask)
                     .toList();
             Files.write(temporaryFile, lines, StandardCharsets.UTF_8);
