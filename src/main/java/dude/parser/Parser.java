@@ -8,6 +8,7 @@ import dude.command.Command;
 import dude.command.CommandType;
 import dude.command.DeleteCommand;
 import dude.command.ExitCommand;
+import dude.command.FindCommand;
 import dude.command.ListCommand;
 import dude.command.MarkCommand;
 import dude.command.OnCommand;
@@ -44,6 +45,7 @@ public class Parser {
         return switch (commandType) {
             case BYE -> new ExitCommand(argument);
             case LIST -> new ListCommand(argument);
+            case FIND -> new FindCommand(argument);
             case ON -> new OnCommand(argument);
             case MARK -> new MarkCommand(argument);
             case UNMARK -> new UnmarkCommand(argument);
@@ -59,7 +61,7 @@ public class Parser {
             }
         }
         throw new UsageException(action, "command", action,
-                "todo, deadline, event, or on", COMMAND_USAGE, "<task type>");
+                "todo, deadline, event, on, or find", COMMAND_USAGE, "<task type>");
     }
 
     /**

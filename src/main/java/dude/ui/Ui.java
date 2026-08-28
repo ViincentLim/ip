@@ -1,6 +1,7 @@
 package dude.ui;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Scanner;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -107,6 +108,20 @@ public class Ui {
                         Stream.of("Here are the tasks in your list:"),
                         IntStream.range(0, tasks.size())
                                 .mapToObj(i -> String.format("%d.%s", i + 1, tasks.get(i))))
+                .toArray(String[]::new);
+        printBox(taskLines);
+    }
+
+    /**
+     * Displays tasks whose descriptions contain a keyword.
+     *
+     * @param matchingTasks Tasks matching the search keyword.
+     */
+    public void showMatchingTasks(List<Task> matchingTasks) {
+        String[] taskLines = Stream.concat(
+                        Stream.of("Here are the matching tasks in your list:"),
+                        IntStream.range(0, matchingTasks.size())
+                                .mapToObj(i -> String.format("%d.%s", i + 1, matchingTasks.get(i))))
                 .toArray(String[]::new);
         printBox(taskLines);
     }
