@@ -1,17 +1,20 @@
 package task;
 
+import java.time.format.DateTimeParseException;
+
 import exception.UsageException;
 
 /**
  * A task that must be completed by a specified date or time.
  */
 public class Deadline extends Task {
-    private static final String USAGE_MESSAGE = "Usage: deadline <description> /by <date or time>";
+    private static final String USAGE_MESSAGE = "Usage: deadline <description> /by"
+            + " <yyyy-MM-dd [HHmm]>";
 
     /**
      * Date or time by which this task should be completed.
      */
-    protected String by;
+    protected TaskDate by;
 
     /**
      * Creates an incomplete deadline task with its completion date or time.
@@ -19,7 +22,7 @@ public class Deadline extends Task {
      * @param description Text describing the task.
      * @param by          Date or time by which the task should be completed.
      */
-    public Deadline(String description, String by) {
+    public Deadline(String description, TaskDate by) {
         super(description);
         this.by = by;
     }
@@ -43,7 +46,12 @@ public class Deadline extends Task {
             throw usageError("by", trimmed, "a date/time after /by", token);
         }
 
-        return new Deadline(deadlineParts[0], deadlineParts[1]);
+        try {
+            return new Deadline(deadlineParts[0], TaskDate.parse(deadlineParts[1]));
+        } catch (DateTimeParseException exception) {
+            throw usageError("by", deadlineParts[1], "yyyy-MM-dd or yyyy-MM-dd HHmm",
+                    "<yyyy-MM-dd [HHmm]>", exception);
+        }
     }
 
     private static UsageException usageError(String fieldName, String actualValue,
@@ -53,11 +61,20 @@ public class Deadline extends Task {
     }
 
     /**
+     * Returns a usage exception for an invalid date with its parsing cause.
+     */
+    private static UsageException usageError(String fieldName, String actualValue,
+            String expectedType, String usageToken, Throwable cause) {
+        return new UsageException("deadline", fieldName, actualValue, expectedType,
+                USAGE_MESSAGE, usageToken, cause);
+    }
+
+    /**
      * Returns the date or time by which this task should be completed.
      *
      * @return Completion date or time.
      */
-    public String getBy() {
+    public TaskDate getBy() {
         return by;
     }
 

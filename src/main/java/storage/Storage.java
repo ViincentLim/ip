@@ -14,6 +14,7 @@ import task.CorruptedTask;
 import task.Deadline;
 import task.Event;
 import task.Task;
+import task.TaskDate;
 import task.Todo;
 
 /**
@@ -32,6 +33,8 @@ public class Storage {
     private static final String TYPE_FIELD = "type";
     private static final String DONE_FIELD = "done";
     private static final String DESCRIPTION_FIELD = "description";
+    private static final String DATE_FIELD = "date";
+    private static final String DATE_TIME_FIELD = "dateTime";
     private static final String BY_FIELD = "by";
     private static final String FROM_FIELD = "from";
     private static final String TO_FIELD = "to";
@@ -53,7 +56,7 @@ public class Storage {
             try {
                 tasks.add(parseTask(line));
             } catch (IllegalArgumentException exception) {
-                tasks.add(new CorruptedTask());
+                tasks.add(new CorruptedTask(line));
             }
         }
         return tasks;
@@ -85,10 +88,12 @@ public class Storage {
                 .append(quote(task.getDescription()));
 
         if (task instanceof Deadline deadline) {
-            appendField(json, BY_FIELD, deadline.getBy());
+            appendDateField(json, BY_FIELD, deadline.getBy());
         } else if (task instanceof Event event) {
-            appendField(json, FROM_FIELD, event.getFrom());
-            appendField(json, TO_FIELD, event.getTo());
+            appendDateField(json, FROM_FIELD, event.getFrom());
+            appendDateField(json, TO_FIELD, event.getTo());
+        } else if (task instanceof CorruptedTask corruptedTask) {
+            appendField(json, "raw", corruptedTask.getRawContent());
         }
         return json.append("}").toString();
     }
@@ -98,6 +103,14 @@ public class Storage {
      */
     private static void appendField(StringBuilder json, String field, String value) {
         json.append(",\"").append(field).append("\":").append(quote(value));
+    }
+
+    /**
+     * Appends the date and optional date-time fields for a task endpoint.
+     */
+    private static void appendDateField(StringBuilder json, String field, TaskDate value) {
+        appendField(json, field + DATE_FIELD, value.dateValue());
+        appendField(json, field + DATE_TIME_FIELD, value.dateTimeValue());
     }
 
     /**
@@ -127,10 +140,10 @@ public class Storage {
 
         Task task = switch (type) {
             case "T" -> new Todo(description);
-            case "D" -> new Deadline(description, requireField(fields, BY_FIELD));
+            case "D" -> new Deadline(description, parseDateField(fields, BY_FIELD));
             case "E" -> new Event(description,
-                    requireField(fields, FROM_FIELD), requireField(fields, TO_FIELD));
-            case "C" -> new CorruptedTask();
+                    parseDateField(fields, FROM_FIELD), parseDateField(fields, TO_FIELD));
+            case "C" -> new CorruptedTask(fields.getOrDefault("raw", description));
             default -> throw new IllegalArgumentException("Unknown task type");
         };
 
@@ -149,6 +162,18 @@ public class Storage {
             throw new IllegalArgumentException("Missing field: " + field);
         }
         return value;
+    }
+
+    /**
+     * Reconstructs a task date from its JSONL fields.
+     */
+    private static TaskDate parseDateField(Map<String, String> fields, String field) {
+        try {
+            return task.TaskDate.fromStorage(
+                    requireField(fields, field + DATE_FIELD), fields.get(field + DATE_TIME_FIELD));
+        } catch (RuntimeException exception) {
+            throw new IllegalArgumentException("Invalid date field: " + field, exception);
+        }
     }
 
     /**

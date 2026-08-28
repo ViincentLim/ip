@@ -1,4 +1,6 @@
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.stream.IntStream;
@@ -9,6 +11,7 @@ import storage.Storage;
 import task.Deadline;
 import task.Event;
 import task.Task;
+import task.TaskDate;
 import task.Todo;
 
 /**
@@ -17,8 +20,9 @@ import task.Todo;
 public class Dude {
     private static final String RED = "\u001B[31m";
     private static final String RESET = "\u001B[0m";
-    private static final String TASK_USAGE = "Usage: todo <task details> | deadline <description> /by <date or time>"
-            + " | event <description> /from <start> /to <end>";
+    private static final String TASK_USAGE = "Usage: todo <task details> | deadline <description> /by"
+            + " <yyyy-MM-dd [HHmm]> | event <description> /from <yyyy-MM-dd [HHmm]>"
+            + " /to <yyyy-MM-dd [HHmm]> | on <yyyy-MM-dd>";
 
     /**
      * Creates a DUDE application instance.
@@ -37,13 +41,17 @@ public class Dude {
                 + "██╔══██╗ ██║   ██║ ██╔══██╗ ██╔════╝\n"
                 + "██║  ██║ ██║   ██║ ██║  ██║ █████╗\n"
                 + "██║  ██║ ██║   ██║ ██║  ██║ ██╔══╝\n"
-                + "██████╔╝ ╚██████╔╝╚██████╔╝ ███████╗\n"
+                + "██████╔╝ ╚██████╔╝╚██████╔╝ "
+                + "███████╗\n"
                 + "╚═════╝   ╚═════╝ ╚══════╝  ╚══════╝";
 
         int width = getTerminalWidth();
         String border = "─".repeat(width);
 
-        printBox(border, banner, "Hello! I'm DUDE.", "What can I do for you?");
+        printBox(border, banner, "Hello! I'm DUDE.",
+                "Dates can be represented in this format: yyyy-MM-dd.",
+                "To include a time, use this format: yyyy-MM-dd HHmm.",
+                "What can I do for you?");
 
         Storage storage = new Storage();
         ArrayList<Task> tasks = loadTasks(border, storage);
@@ -60,6 +68,9 @@ public class Dude {
             Storage storage) {
         while (scanner.hasNextLine()) {
             String input = scanner.nextLine();
+            if (input.isBlank()) {
+                continue;
+            }
             String[] commandParts = input.trim().split("\\s+", 2);
             String action = commandParts[0];
             String argument = commandParts.length > 1 ? commandParts[1] : null;
@@ -68,7 +79,7 @@ public class Dude {
                 Command command = Command.parse(action);
                 if (command == null) {
                     throw new UsageException(action, "command", action,
-                            "todo, deadline, or event", TASK_USAGE, "<task type>");
+                            "todo, deadline, event, or on", TASK_USAGE, "<task type>");
                 }
 
                 switch (command) {
@@ -77,6 +88,9 @@ public class Dude {
                         return;
                     case LIST:
                         printTaskList(border, tasks);
+                        break;
+                    case ON:
+                        printTasksOnDate(border, tasks, argument);
                         break;
                     case MARK, UNMARK:
                         updateTask(border, tasks, command, argument);
@@ -194,26 +208,53 @@ public class Dude {
      */
     private static void addTask(String border, ArrayList<Task> tasks,
             Command command, String argument) throws UsageException {
-        Task task;
-        switch (command) {
-            case TODO:
-                task = Todo.fromInput(argument);
-                break;
-            case DEADLINE:
-                task = Deadline.fromInput(argument);
-                break;
-            case EVENT:
-                task = Event.fromInput(argument);
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported task type: " + command);
-        }
+        Task task = switch (command) {
+            case TODO -> Todo.fromInput(argument);
+            case DEADLINE -> Deadline.fromInput(argument);
+            case EVENT -> Event.fromInput(argument);
+            default -> throw new IllegalArgumentException("Unsupported task type: " + command);
+        };
 
         tasks.add(task);
         printBox(border,
                 "Got it. I've added this task:",
                 "  " + task,
                 String.format("Now you have %d tasks in the list.", tasks.size()));
+    }
+
+    /**
+     * Prints deadlines and events that occur on the requested date.
+     */
+    private static void printTasksOnDate(String border, ArrayList<Task> tasks, String argument)
+            throws UsageException {
+        if (argument == null || argument.isBlank()) {
+            throw usageError(Command.ON, "date", "<missing>", "yyyy-MM-dd", "<yyyy-MM-dd>");
+        }
+
+        LocalDate date;
+        try {
+            date = TaskDate.parseDate(argument);
+        } catch (DateTimeParseException exception) {
+            throw usageError(Command.ON, "date", argument, "yyyy-MM-dd", "<yyyy-MM-dd>", exception);
+        }
+
+        String[] matchingTasks = Stream.concat(
+                        Stream.of(String.format("Tasks occurring on %s:", date)),
+                        IntStream.range(0, tasks.size())
+                                .filter(index -> occursOn(tasks.get(index), date))
+                                .mapToObj(index -> String.format("%d.%s", index + 1, tasks.get(index))))
+                .toArray(String[]::new);
+        printBox(border, matchingTasks);
+    }
+
+    /**
+     * Returns whether a task occurs on a date.
+     */
+    private static boolean occursOn(Task task, LocalDate date) {
+        if (task instanceof Deadline deadline) {
+            return deadline.getBy().occursOn(date);
+        }
+        return task instanceof Event event && event.occursOn(date);
     }
 
     /**

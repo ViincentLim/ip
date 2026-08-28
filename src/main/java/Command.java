@@ -11,6 +11,10 @@ public enum Command {
      */
     LIST("list", null),
     /**
+     * Displays deadlines and events occurring on a date.
+     */
+    ON("on", "Usage: on <yyyy-MM-dd>"),
+    /**
      * Marks a task as completed.
      */
     MARK("mark", "Usage: mark <task number>"),
@@ -66,6 +70,7 @@ public enum Command {
         return switch (word) {
             case "bye" -> BYE;
             case "list" -> LIST;
+            case "on" -> ON;
             case "mark" -> MARK;
             case "unmark" -> UNMARK;
             case "delete" -> DELETE;
