@@ -2,8 +2,8 @@ package dude;
 
 import java.io.IOException;
 
-import dude.exception.UsageException;
 import dude.command.Command;
+import dude.exception.UsageException;
 import dude.parser.Parser;
 import dude.storage.Storage;
 import dude.task.TaskList;
@@ -29,14 +29,23 @@ public class Dude {
      * Creates an application with supplied collaborators.
      *
      * @param storage Persistence handler.
-     * @param ui User-interface handler.
-     * @param parser Command parser.
+     * @param ui      User-interface handler.
+     * @param parser  Command parser.
      */
     public Dude(Storage storage, Ui ui, Parser parser) {
         this.storage = storage;
         this.ui = ui;
         this.parser = parser;
         this.tasks = new TaskList();
+    }
+
+    /**
+     * Starts DUDE with its default collaborators.
+     *
+     * @param args Command-line arguments, which are not used.
+     */
+    static void main(String[] args) {
+        new Dude().run();
     }
 
     /**
@@ -54,7 +63,7 @@ public class Dude {
                     break;
                 }
                 ui.showLine();
-                Command command = parser.parse(fullCommand);
+                Command command = Parser.parse(fullCommand);
                 command.execute(tasks, ui, storage);
                 isExit = command.isExit();
             } catch (UsageException exception) {
@@ -75,14 +84,5 @@ public class Dude {
             ui.showLoadingError();
             return new TaskList();
         }
-    }
-
-    /**
-     * Starts DUDE with its default collaborators.
-     *
-     * @param args Command-line arguments, which are not used.
-     */
-    static void main(String[] args) {
-        new Dude().run();
     }
 }

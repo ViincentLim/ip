@@ -40,6 +40,36 @@ public class Ui {
         this.border = "─".repeat(getTerminalWidth());
     }
 
+    private static boolean occursOn(Task task, LocalDate date) {
+        if (task instanceof Deadline deadline) {
+            return deadline.getBy().occursOn(date);
+        }
+        return task instanceof Event event && event.occursOn(date);
+    }
+
+    private static int getTerminalWidth() {
+        try {
+            var console = System.console();
+            if (console != null) {
+                var method = console.getClass().getMethod("getWidth");
+                return (int) method.invoke(console);
+            }
+        } catch (Exception ignored) {
+        }
+        return 60;
+    }
+
+    private static String padRight(String text, int length) {
+        return text.length() >= length ? text : text + " ".repeat(length - text.length());
+    }
+
+    private static String formatActualValue(String actualValue) {
+        if (actualValue == null || actualValue.equals("<missing>")) {
+            return "<missing>";
+        }
+        return String.format("\"%s\"", actualValue);
+    }
+
     /**
      * Displays the welcome banner and supported date formats.
      */
@@ -214,13 +244,6 @@ public class Ui {
                 String.format("Expected: %s.", exception.getExpectedType()), usage);
     }
 
-    private static boolean occursOn(Task task, LocalDate date) {
-        if (task instanceof Deadline deadline) {
-            return deadline.getBy().occursOn(date);
-        }
-        return task instanceof Event event && event.occursOn(date);
-    }
-
     private void printBox(String... lines) {
         System.out.println(border);
         isAtDivider = true;
@@ -231,28 +254,5 @@ public class Ui {
         }
         isAtDivider = false;
         showLine();
-    }
-
-    private static int getTerminalWidth() {
-        try {
-            var console = System.console();
-            if (console != null) {
-                var method = console.getClass().getMethod("getWidth");
-                return (int) method.invoke(console);
-            }
-        } catch (Exception ignored) {
-        }
-        return 60;
-    }
-
-    private static String padRight(String text, int length) {
-        return text.length() >= length ? text : text + " ".repeat(length - text.length());
-    }
-
-    private static String formatActualValue(String actualValue) {
-        if (actualValue == null || actualValue.equals("<missing>")) {
-            return "<missing>";
-        }
-        return String.format("\"%s\"", actualValue);
     }
 }
