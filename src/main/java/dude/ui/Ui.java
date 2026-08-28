@@ -1,13 +1,16 @@
+package dude.ui;
+
 import java.time.LocalDate;
 import java.util.Scanner;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import exception.UsageException;
-import task.Deadline;
-import task.Event;
-import task.Task;
-import task.TaskList;
+import dude.command.CommandType;
+import dude.exception.UsageException;
+import dude.task.Deadline;
+import dude.task.Event;
+import dude.task.Task;
+import dude.task.TaskList;
 
 /**
  * Handles console input and user-facing output.

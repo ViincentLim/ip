@@ -1,7 +1,12 @@
-import exception.UsageException;
-import storage.Storage;
-import task.Task;
-import task.TaskList;
+package dude.command;
+
+import dude.storage.Storage;
+import dude.task.Task;
+import dude.task.TaskList;
+import dude.ui.Ui;
+
+import dude.exception.UsageException;
+import dude.parser.Parser;
 
 /**
  * An executable command entered by the user.

@@ -1,4 +1,4 @@
-package exception;
+package dude.exception;
 
 /**
  * Describes an invalid command field and the format expected by the command.

@@ -1,9 +1,9 @@
-package task;
+package dude.task;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
-import exception.UsageException;
+import dude.exception.UsageException;
 
 /**
  * A task that starts and ends at specified dates or times.

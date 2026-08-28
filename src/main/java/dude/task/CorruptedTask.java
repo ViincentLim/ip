@@ -1,4 +1,4 @@
-package task;
+package dude.task;
 
 /**
  * A placeholder for a task record that could not be read from storage.

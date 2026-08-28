@@ -1,8 +1,13 @@
+package dude;
+
 import java.io.IOException;
 
-import exception.UsageException;
-import storage.Storage;
-import task.TaskList;
+import dude.exception.UsageException;
+import dude.command.Command;
+import dude.parser.Parser;
+import dude.storage.Storage;
+import dude.task.TaskList;
+import dude.ui.Ui;
 
 /**
  * Coordinates the DUDE application components.

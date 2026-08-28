@@ -1,3 +1,5 @@
+package dude.command;
+
 /**
  * Identifies the command words understood by DUDE.
  */

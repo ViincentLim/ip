@@ -1,7 +1,18 @@
+package dude.parser;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
-import exception.UsageException;
+import dude.command.AddCommand;
+import dude.command.Command;
+import dude.command.CommandType;
+import dude.command.DeleteCommand;
+import dude.command.ExitCommand;
+import dude.command.ListCommand;
+import dude.command.MarkCommand;
+import dude.command.OnCommand;
+import dude.command.UnmarkCommand;
+import dude.exception.UsageException;
 
 /**
  * Converts raw user input into executable command objects.
@@ -94,7 +105,7 @@ public class Parser {
             throw usageError(CommandType.ON, "date", "<missing>", "yyyy-MM-dd", "<yyyy-MM-dd>");
         }
         try {
-            return task.TaskDate.parseDate(argument);
+            return dude.task.TaskDate.parseDate(argument);
         } catch (DateTimeParseException exception) {
             throw usageError(CommandType.ON, "date", argument,
                     "yyyy-MM-dd", "<yyyy-MM-dd>", exception);

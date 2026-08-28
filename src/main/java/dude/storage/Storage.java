@@ -1,4 +1,4 @@
-package storage;
+package dude.storage;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -10,13 +10,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import task.CorruptedTask;
-import task.Deadline;
-import task.Event;
-import task.Task;
-import task.TaskDate;
-import task.TaskList;
-import task.Todo;
+import dude.task.CorruptedTask;
+import dude.task.Deadline;
+import dude.task.Event;
+import dude.task.Task;
+import dude.task.TaskDate;
+import dude.task.TaskList;
+import dude.task.Todo;
 
 /**
  * Loads and saves tasks as one escaped JSON object per line.
@@ -170,7 +170,7 @@ public class Storage {
      */
     private static TaskDate parseDateField(Map<String, String> fields, String field) {
         try {
-            return task.TaskDate.fromStorage(
+            return TaskDate.fromStorage(
                     requireField(fields, field + DATE_FIELD), fields.get(field + DATE_TIME_FIELD));
         } catch (RuntimeException exception) {
             throw new IllegalArgumentException("Invalid date field: " + field, exception);

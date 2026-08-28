@@ -1,8 +1,13 @@
+package dude.command;
+
 import java.time.LocalDate;
 
-import exception.UsageException;
-import storage.Storage;
-import task.TaskList;
+import dude.parser.Parser;
+import dude.exception.UsageException;
+import dude.storage.Storage;
+import dude.task.TaskList;
+import dude.ui.Ui;
+
 
 /**
  * Executes the date-query command.

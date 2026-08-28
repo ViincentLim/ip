@@ -1,5 +1,9 @@
-import storage.Storage;
-import task.TaskList;
+package dude.command;
+
+import dude.storage.Storage;
+import dude.task.TaskList;
+import dude.ui.Ui;
+
 
 /**
  * Executes the exit command.

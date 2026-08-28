@@ -1,6 +1,6 @@
-package task;
+package dude.task;
 
-import exception.UsageException;
+import dude.exception.UsageException;
 
 /**
  * A task without an attached date or time.
