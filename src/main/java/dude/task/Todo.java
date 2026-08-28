@@ -35,6 +35,11 @@ public class Todo extends Task {
                 "Usage: todo <task details>", usageToken);
     }
 
+    /**
+     * Returns the formatted todo representation.
+     *
+     * @return Todo type marker followed by the task status and description.
+     */
     @Override
     public String toString() {
         return String.format("[T]%s", super.toString());

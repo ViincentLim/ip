@@ -18,6 +18,14 @@ public class FindCommand extends Command {
         super(argument);
     }
 
+    /**
+     * Displays tasks whose descriptions contain the search keyword.
+     *
+     * @param tasks   Application task list.
+     * @param ui      User-interface handler.
+     * @param storage Persistence handler.
+     * @throws UsageException If the keyword is missing or blank.
+     */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws UsageException {
         if (argument == null || argument.isBlank()) {

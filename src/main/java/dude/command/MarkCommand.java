@@ -6,7 +6,6 @@ import dude.task.Task;
 import dude.task.TaskList;
 import dude.ui.Ui;
 
-
 /**
  * Executes the mark command.
  */
@@ -20,6 +19,14 @@ public class MarkCommand extends Command {
         super(argument);
     }
 
+    /**
+     * Marks and persists the selected task.
+     *
+     * @param tasks   Application task list.
+     * @param ui      User-interface handler.
+     * @param storage Persistence handler.
+     * @throws UsageException If the task number is invalid.
+     */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws UsageException {
         Task task = tasks.get(parseTaskIndex(tasks, CommandType.MARK));

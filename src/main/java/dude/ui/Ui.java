@@ -17,8 +17,8 @@ import dude.task.TaskList;
  * Handles console input and user-facing output.
  */
 public class Ui {
-    private static final String RED = "\u001B[31m";
-    private static final String RESET = "\u001B[0m";
+    private static final String ANSI_RED = "\u001B[31m";
+    private static final String ANSI_RESET = "\u001B[0m";
     private final Scanner scanner;
     private final String border;
     private boolean isAtDivider;
@@ -232,7 +232,7 @@ public class Ui {
      */
     public void showError(UsageException exception) {
         String usage = exception.getUsageMessage().replace(
-                exception.getUsageToken(), RED + exception.getUsageToken() + RESET);
+                exception.getUsageToken(), ANSI_RED + exception.getUsageToken() + ANSI_RESET);
         String actualValue = formatActualValue(exception.getActualValue());
         if ("command".equals(exception.getFieldName())) {
             printBox(String.format("Error: invalid command %s.", actualValue),

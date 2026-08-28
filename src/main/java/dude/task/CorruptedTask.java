@@ -35,6 +35,11 @@ public class CorruptedTask extends Task {
         return rawContent;
     }
 
+    /**
+     * Returns the formatted corrupted-record representation.
+     *
+     * @return Corrupted-task marker followed by the raw record.
+     */
     @Override
     public String toString() {
         return String.format("[C]%s", super.toString());

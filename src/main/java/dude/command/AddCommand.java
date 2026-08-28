@@ -9,7 +9,6 @@ import dude.task.TaskList;
 import dude.task.Todo;
 import dude.ui.Ui;
 
-
 /**
  * Executes todo, deadline, and event creation commands.
  */
@@ -27,6 +26,14 @@ public class AddCommand extends Command {
         this.commandType = commandType;
     }
 
+    /**
+     * Creates and stores the requested task type.
+     *
+     * @param tasks   Application task list.
+     * @param ui      User-interface handler.
+     * @param storage Persistence handler.
+     * @throws UsageException If the task details are invalid.
+     */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws UsageException {
         Task task = switch (commandType) {

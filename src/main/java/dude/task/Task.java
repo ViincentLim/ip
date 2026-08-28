@@ -86,6 +86,11 @@ public class Task {
         return isDone;
     }
 
+    /**
+     * Returns the formatted task representation.
+     *
+     * @return Task status marker followed by the description.
+     */
     @Override
     public String toString() {
         return String.format("[%s] %s", getStatusIcon(), description);

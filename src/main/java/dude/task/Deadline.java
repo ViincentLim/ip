@@ -78,6 +78,11 @@ public class Deadline extends Task {
         return by;
     }
 
+    /**
+     * Returns the formatted deadline representation.
+     *
+     * @return Deadline type marker followed by the task and deadline.
+     */
     @Override
     public String toString() {
         return String.format("[D]%s (by: %s)", super.toString(), by);

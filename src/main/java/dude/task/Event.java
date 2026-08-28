@@ -130,6 +130,11 @@ public class Event extends Task {
         return !targetDate.isBefore(from.date()) && !targetDate.isAfter(to.date());
     }
 
+    /**
+     * Returns the formatted event representation.
+     *
+     * @return Event type marker followed by the task and event range.
+     */
     @Override
     public String toString() {
         return String.format("[E]%s (from: %s to: %s)", super.toString(), from, to);

@@ -8,7 +8,6 @@ import dude.storage.Storage;
 import dude.task.TaskList;
 import dude.ui.Ui;
 
-
 /**
  * Executes the date-query command.
  */
@@ -22,6 +21,14 @@ public class OnCommand extends Command {
         super(argument);
     }
 
+    /**
+     * Displays tasks occurring on the requested date.
+     *
+     * @param tasks   Application task list.
+     * @param ui      User-interface handler.
+     * @param storage Persistence handler.
+     * @throws UsageException If the date is invalid.
+     */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws UsageException {
         LocalDate date = Parser.parseDate(argument);
