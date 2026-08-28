@@ -16,5 +16,9 @@ bin/
 # Temp files
 _temp/
 
+# Runtime task data
+/data/duke.jsonl
+/data/duke.txt
+
 /text-ui-test/ACTUAL.TXT
 text-ui-test/EXPECTED-UNIX.TXT
