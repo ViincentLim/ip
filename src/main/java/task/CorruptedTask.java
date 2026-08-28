@@ -4,13 +4,35 @@ package task;
  * A placeholder for a task record that could not be read from storage.
  */
 public class CorruptedTask extends Task {
-    private static final String DESCRIPTION = "[Corrupted record]";
+    private static final String DESCRIPTION_PREFIX = "[Corrupted: ";
+    private static final String DESCRIPTION_SUFFIX = "]";
+
+    private final String rawContent;
 
     /**
      * Creates a visible placeholder for one malformed storage record.
      */
     public CorruptedTask() {
-        super(DESCRIPTION);
+        this("record");
+    }
+
+    /**
+     * Creates a visible placeholder containing the malformed source record.
+     *
+     * @param rawContent Original record that could not be parsed.
+     */
+    public CorruptedTask(String rawContent) {
+        super(DESCRIPTION_PREFIX + rawContent + DESCRIPTION_SUFFIX);
+        this.rawContent = rawContent;
+    }
+
+    /**
+     * Returns the malformed source record.
+     *
+     * @return Original raw record.
+     */
+    public String getRawContent() {
+        return rawContent;
     }
 
     @Override
