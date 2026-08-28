@@ -10,6 +10,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[3]
 PLAN = ROOT / "test/ui-test-plan.md"
+DATA_FILE = ROOT / "data/duke.jsonl"
+LEGACY_DATA_FILE = ROOT / "data/duke.txt"
 
 
 def read_block(text: str, heading: str, start: int, end: int) -> str:
@@ -42,8 +44,23 @@ def parse_plan(text: str) -> tuple[str, str, list[dict[str, str]]]:
             "aim": aim.group(1),
             "input": read_block(text, "Inputs", match.start(), end),
             "expected": read_block(text, "Expected output", match.start(), end),
+            "data": read_optional_block(text, "Data file before startup", match.start(), end),
         })
     return build.group(1), program.group(1), cases
+
+
+def read_optional_block(text: str, heading: str, start: int, end: int) -> str | None:
+    pattern = rf"### {re.escape(heading)}\s*\n```(?:text)?\n(.*?)```"
+    match = re.search(pattern, text[start:end], re.DOTALL)
+    return None if match is None else match.group(1)
+
+
+def prepare_data_file(contents: str | None) -> None:
+    DATA_FILE.unlink(missing_ok=True)
+    LEGACY_DATA_FILE.unlink(missing_ok=True)
+    if contents is not None:
+        DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
+        DATA_FILE.write_text(contents)
 
 
 def run(command: str, stdin: str) -> str:
@@ -95,7 +112,12 @@ def main() -> int:
 
     records = []
     for case in cases:
-        actual = run(program, case["input"])
+        try:
+            prepare_data_file(case["data"])
+            actual = run(program, case["input"])
+        except OSError as error:
+            print(f"UI test data setup failed: {error}", file=sys.stderr)
+            return 2
         record = {**case, "actual": actual}
         records.append(record)
         if comparable_output(actual) != comparable_output(case["expected"]):
