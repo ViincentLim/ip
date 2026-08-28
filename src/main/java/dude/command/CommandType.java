@@ -13,6 +13,10 @@ public enum CommandType {
      */
     LIST("list", null),
     /**
+     * Finds tasks whose descriptions contain a keyword.
+     */
+    FIND("find", "Usage: find <keyword>"),
+    /**
      * Displays tasks occurring on a date.
      */
     ON("on", "Usage: on <yyyy-MM-dd>"),

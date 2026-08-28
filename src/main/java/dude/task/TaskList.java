@@ -2,6 +2,7 @@ package dude.task;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Stream;
 
 /**
@@ -73,6 +74,19 @@ public class TaskList {
      */
     public Stream<Task> stream() {
         return tasks.stream();
+    }
+
+    /**
+     * Returns tasks whose descriptions contain the supplied keyword.
+     *
+     * @param keyword Keyword to search for, case-insensitively.
+     * @return Matching tasks in their original order.
+     */
+    public List<Task> find(String keyword) {
+        String normalizedKeyword = keyword.toLowerCase(Locale.ROOT);
+        return tasks.stream()
+                .filter(task -> task.getDescription().toLowerCase(Locale.ROOT).contains(normalizedKeyword))
+                .toList();
     }
 
     /**
