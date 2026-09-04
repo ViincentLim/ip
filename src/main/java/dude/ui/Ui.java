@@ -1,7 +1,9 @@
 package dude.ui;
 
 import java.time.LocalDate;
+import java.io.PrintStream;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -20,6 +22,7 @@ public class Ui {
     private static final String ANSI_RED = "\u001B[31m";
     private static final String ANSI_RESET = "\u001B[0m";
     private final Scanner scanner;
+    private final PrintStream output;
     private final String border;
     private boolean isAtDivider;
 
@@ -27,7 +30,7 @@ public class Ui {
      * Creates a UI connected to standard input.
      */
     public Ui() {
-        this(new Scanner(System.in));
+        this(new Scanner(System.in), System.out);
     }
 
     /**
@@ -36,7 +39,18 @@ public class Ui {
      * @param scanner Source of user commands.
      */
     public Ui(Scanner scanner) {
+        this(scanner, System.out);
+    }
+
+    /**
+     * Creates a UI connected to supplied input and output streams.
+     *
+     * @param scanner Source of user commands.
+     * @param output  Destination for user-facing output.
+     */
+    public Ui(Scanner scanner, PrintStream output) {
         this.scanner = scanner;
+        this.output = Objects.requireNonNull(output);
         this.border = "─".repeat(getTerminalWidth());
     }
 
@@ -116,7 +130,7 @@ public class Ui {
      */
     public void showLine() {
         if (!isAtDivider) {
-            System.out.println(border);
+            output.println(border);
             isAtDivider = true;
         }
     }
@@ -245,11 +259,11 @@ public class Ui {
     }
 
     private void printBox(String... lines) {
-        System.out.println(border);
+        output.println(border);
         isAtDivider = true;
         for (String line : lines) {
             for (String part : line.split("\n")) {
-                System.out.println(padRight(part, border.length()));
+                output.println(padRight(part, border.length()));
             }
         }
         isAtDivider = false;

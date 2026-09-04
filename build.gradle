@@ -20,6 +20,19 @@ repositories {
 }
 
 dependencies {
+    String javaFxVersion = '17.0.10'
+    String osName = System.getProperty('os.name').toLowerCase(Locale.ROOT)
+    String osArch = System.getProperty('os.arch').toLowerCase(Locale.ROOT)
+    String javaFxPlatform = osName.contains('mac')
+            ? (osArch.contains('aarch64') || osArch.contains('arm64') ? 'mac-aarch64' : 'mac')
+            : (osName.contains('win') ? 'win'
+            : (osArch.contains('aarch64') || osArch.contains('arm64') ? 'linux-aarch64' : 'linux'))
+
+    implementation("org.openjfx:javafx-base:${javaFxVersion}:${javaFxPlatform}")
+    implementation("org.openjfx:javafx-controls:${javaFxVersion}:${javaFxPlatform}")
+    implementation("org.openjfx:javafx-fxml:${javaFxVersion}:${javaFxPlatform}")
+    implementation("org.openjfx:javafx-graphics:${javaFxVersion}:${javaFxPlatform}")
+
     String jUnitVersion = '5.14.4'
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:${jUnitVersion}"
@@ -43,7 +56,7 @@ test {
 }
 
 application {
-    mainClass = 'dude.Dude'
+    mainClass = 'dude.gui.Launcher'
 }
 
 jar {
