@@ -1,8 +1,8 @@
 ## UI test plan
 
-Build command: `javac --release 25 -d /tmp/dude-ui-test-build src/main/java/dude/Dude.java src/main/java/dude/command/AddCommand.java src/main/java/dude/command/Command.java src/main/java/dude/command/CommandType.java src/main/java/dude/command/DeleteCommand.java src/main/java/dude/command/ExitCommand.java src/main/java/dude/command/FindCommand.java src/main/java/dude/command/ListCommand.java src/main/java/dude/command/MarkCommand.java src/main/java/dude/command/OnCommand.java src/main/java/dude/command/UnmarkCommand.java src/main/java/dude/exception/UsageException.java src/main/java/dude/parser/Parser.java src/main/java/dude/storage/Storage.java src/main/java/dude/task/CorruptedTask.java src/main/java/dude/task/Deadline.java src/main/java/dude/task/Event.java src/main/java/dude/task/Task.java src/main/java/dude/task/TaskDate.java src/main/java/dude/task/TaskList.java src/main/java/dude/task/Todo.java src/main/java/dude/ui/Ui.java`
+Build command: `./gradlew clean classes`
 
-Program command: `java -cp /tmp/dude-ui-test-build dude.Dude`
+Program command: `java -cp build/classes/java/main dude.Dude`
 
 Each expected output is the complete stdout session. The runner uses Java 25
 and the non-interactive default terminal width of 60 characters.
