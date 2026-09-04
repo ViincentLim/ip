@@ -7,6 +7,11 @@ Program command: `java -cp build/classes/java/main dude.Dude`
 Each expected output is the complete stdout session. The runner uses Java 25
 and the non-interactive default terminal width of 60 characters.
 
+JUnit test command: `./gradlew test`
+
+JUnit coverage includes date parsing and validation in `TaskDateTest`, and
+case-insensitive ordered task search in `TaskListTest`.
+
 ## Test case: typed dates and date query
 
 Aim: Verify that date-only and date-time values are parsed, formatted, persisted, and found by `on`.
