@@ -9,6 +9,8 @@ and the non-interactive default terminal width of 60 characters.
 
 JUnit test command: `./gradlew test`
 
+CheckStyle validation command: `./gradlew check`
+
 JUnit coverage includes date parsing and validation in `TaskDateTest`, and
 case-insensitive ordered task search in `TaskListTest`.
 
