@@ -2,6 +2,8 @@
 
 Build command: `./gradlew clean classes`
 
+GUI program command: `./gradlew run`
+
 Program command: `java -cp build/classes/java/main dude.Dude`
 
 Each expected output is the complete stdout session. The runner uses Java 25
@@ -10,6 +12,9 @@ and the non-interactive default terminal width of 60 characters.
 JUnit test command: `./gradlew test`
 
 CheckStyle validation command: `./gradlew check`
+
+GUI smoke test: launch the GUI, verify the task list loads, execute `todo read book`,
+`mark 1`, `find book`, `unmark 1`, `delete 1`, and close the window.
 
 JUnit coverage includes date parsing and validation in `TaskDateTest`, and
 case-insensitive ordered task search in `TaskListTest`.
