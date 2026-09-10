@@ -38,6 +38,22 @@ public abstract class Command {
     }
 
     /**
+     * Updates a task's completion state and displays the standard confirmation.
+     *
+     * @param task        Task to update.
+     * @param commandType Command describing the requested completion state.
+     * @param ui          User-interface handler.
+     */
+    protected static void updateAndShow(Task task, CommandType commandType, Ui ui) {
+        switch (commandType) {
+        case MARK -> task.markAsDone();
+        case UNMARK -> task.markAsNotDone();
+        default -> throw new IllegalArgumentException("Unsupported update command");
+        }
+        ui.showUpdatedTask(task, commandType);
+    }
+
+    /**
      * Executes this command.
      *
      * @param tasks   Application task list.

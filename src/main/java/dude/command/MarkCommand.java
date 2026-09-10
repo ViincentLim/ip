@@ -30,8 +30,7 @@ public class MarkCommand extends Command {
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws UsageException {
         Task task = tasks.get(parseTaskIndex(tasks, CommandType.MARK));
-        task.markAsDone();
-        ui.showUpdatedTask(task, CommandType.MARK);
+        updateAndShow(task, CommandType.MARK, ui);
         save(tasks, ui, storage);
     }
 }
