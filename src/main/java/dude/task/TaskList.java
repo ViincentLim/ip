@@ -24,6 +24,7 @@ public class TaskList {
      * @param tasks Tasks to place in the list.
      */
     public TaskList(List<Task> tasks) {
+        assert tasks != null;
         this.tasks = new ArrayList<>(tasks);
     }
 
@@ -33,6 +34,7 @@ public class TaskList {
      * @param task Task to add.
      */
     public void add(Task task) {
+        assert task != null;
         tasks.add(task);
     }
 
@@ -44,6 +46,7 @@ public class TaskList {
      * @throws IndexOutOfBoundsException If the index is outside this list.
      */
     public Task get(int index) {
+        assert index >= 0 && index < tasks.size();
         return tasks.get(index);
     }
 
@@ -55,6 +58,7 @@ public class TaskList {
      * @throws IndexOutOfBoundsException If the index is outside this list.
      */
     public Task remove(int index) {
+        assert index >= 0 && index < tasks.size();
         return tasks.remove(index);
     }
 
@@ -83,6 +87,7 @@ public class TaskList {
      * @return Matching tasks in their original order.
      */
     public List<Task> find(String keyword) {
+        assert keyword != null;
         String normalizedKeyword = keyword.toLowerCase(Locale.ROOT);
         return tasks.stream()
                 .filter(task -> task.getDescription().toLowerCase(Locale.ROOT).contains(normalizedKeyword))
