@@ -30,8 +30,7 @@ public class UnmarkCommand extends Command {
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage) throws UsageException {
         Task task = tasks.get(parseTaskIndex(tasks, CommandType.UNMARK));
-        task.markAsNotDone();
-        ui.showUpdatedTask(task, CommandType.UNMARK);
+        updateAndShow(task, CommandType.UNMARK, ui);
         save(tasks, ui, storage);
     }
 }
