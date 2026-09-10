@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import dude.task.CorruptedTask;
 import dude.task.Deadline;
@@ -47,20 +48,21 @@ public class Storage {
     }
 
     private static ArrayList<Task> readTasks(Path file) throws IOException {
-        ArrayList<Task> tasks = new ArrayList<>();
+        return Files.readAllLines(file, StandardCharsets.UTF_8).stream()
+                .filter(line -> !line.isBlank())
+                .map(Storage::parseTaskSafely)
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
 
-        for (String line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
-            if (line.isBlank()) {
-                continue;
-            }
-
-            try {
-                tasks.add(parseTask(line));
-            } catch (IllegalArgumentException exception) {
-                tasks.add(new CorruptedTask(line));
-            }
+    /**
+     * Parses one stored task, preserving malformed records as corrupted tasks.
+     */
+    private static Task parseTaskSafely(String line) {
+        try {
+            return parseTask(line);
+        } catch (IllegalArgumentException exception) {
+            return new CorruptedTask(line);
         }
-        return tasks;
     }
 
     /**
