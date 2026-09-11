@@ -224,6 +224,22 @@ public class Ui {
     }
 
     /**
+     * Displays a successful undo operation.
+     *
+     * @param description Description of the reversed command.
+     */
+    public void showUndo(String description) {
+        printBox("Undid the last command:", "  " + description + ".");
+    }
+
+    /**
+     * Displays that there are no commands available to undo.
+     */
+    public void showUndoUnavailable() {
+        printBox("There are no commands to undo.");
+    }
+
+    /**
      * Displays a loading failure.
      */
     public void showLoadingError() {

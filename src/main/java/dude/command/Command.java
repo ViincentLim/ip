@@ -61,7 +61,7 @@ public abstract class Command {
      * @param storage Persistence handler.
      * @throws UsageException If the command argument is invalid.
      */
-    public abstract void execute(TaskList tasks, Ui ui, Storage storage)
+    public abstract void execute(TaskList tasks, Ui ui, Storage storage, UndoHistory history)
             throws UsageException;
 
     /**

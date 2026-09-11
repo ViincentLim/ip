@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 import dude.command.Command;
+import dude.command.UndoHistory;
 import dude.exception.UsageException;
 import dude.parser.Parser;
 import dude.storage.Storage;
@@ -19,6 +20,7 @@ import dude.ui.Ui;
  */
 public class GuiController {
     private final Storage storage;
+    private final UndoHistory history;
     private TaskList tasks;
 
     /**
@@ -26,6 +28,7 @@ public class GuiController {
      */
     public GuiController() {
         storage = new Storage();
+        history = new UndoHistory();
         tasks = new TaskList();
     }
 
@@ -52,7 +55,7 @@ public class GuiController {
             Ui outputUi = new Ui(new Scanner(""), output);
             try {
                 Command command = Parser.parse(input);
-                command.execute(tasks, outputUi, storage);
+                command.execute(tasks, outputUi, storage, history);
             } catch (UsageException exception) {
                 outputUi.showError(exception);
             }

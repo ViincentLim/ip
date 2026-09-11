@@ -17,7 +17,69 @@ GUI smoke test: launch the GUI, verify the task list loads, execute `todo read b
 `mark 1`, `find book`, `unmark 1`, `delete 1`, and close the window.
 
 JUnit coverage includes date parsing and validation in `TaskDateTest`, and
-case-insensitive ordered task search in `TaskListTest`.
+case-insensitive ordered task search in `TaskListTest`, plus session-based
+undo behavior in `UndoHistoryTest`.
+
+## Test case: undo task changes
+
+Aim: Verify that undo reverses side-effect commands in last-in-first-out order
+and reports an empty undo history without changing the task list.
+
+### Inputs
+
+```text
+todo read book
+todo buy milk
+undo
+undo
+undo
+list
+bye
+```
+
+### Expected output
+
+```text
+────────────────────────────────────────────────────────────
+██████╗  ██╗   ██╗ ██████╗  ███████╗
+██╔══██╗ ██║   ██║ ██╔══██╗ ██╔════╝
+██║  ██║ ██║   ██║ ██║  ██║ █████╗
+██║  ██║ ██║   ██║ ██║  ██║ ██╔══╝
+██████╔╝ ╚██████╔╝╚██████╔╝ ███████╗
+╚═════╝   ╚═════╝ ╚══════╝  ╚══════╝
+Hello! I'm DUDE.
+Dates can be represented in this format: yyyy-MM-dd.
+To include a time, use this format: yyyy-MM-dd HHmm.
+What can I do for you?
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Got it. I've added this task:
+  [T][ ] read book
+Now you have 1 tasks in the list.
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Got it. I've added this task:
+  [T][ ] buy milk
+Now you have 2 tasks in the list.
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Undid the last command:
+  add task.
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Undid the last command:
+  add task.
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+There are no commands to undo.
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Here are the tasks in your list:
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Bye. Hope to see you again soon!
+────────────────────────────────────────────────────────────
+```
 
 ## Test case: typed dates and date query
 
@@ -232,6 +294,60 @@ Bye. Hope to see you again soon!
 ```
 ## Latest test session
 
+### undo task changes
+Console input:
+```text
+todo read book
+todo buy milk
+undo
+undo
+undo
+list
+bye
+```
+Console output:
+```text
+────────────────────────────────────────────────────────────
+██████╗  ██╗   ██╗ ██████╗  ███████╗
+██╔══██╗ ██║   ██║ ██╔══██╗ ██╔════╝
+██║  ██║ ██║   ██║ ██║  ██║ █████╗
+██║  ██║ ██║   ██║ ██║  ██║ ██╔══╝
+██████╔╝ ╚██████╔╝╚██████╔╝ ███████╗
+╚═════╝   ╚═════╝ ╚══════╝  ╚══════╝
+Hello! I'm DUDE.
+Dates can be represented in this format: yyyy-MM-dd.
+To include a time, use this format: yyyy-MM-dd HHmm.
+What can I do for you?
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Got it. I've added this task:
+  [T][ ] read book
+Now you have 1 tasks in the list.
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Got it. I've added this task:
+  [T][ ] buy milk
+Now you have 2 tasks in the list.
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Undid the last command:
+  add task.
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Undid the last command:
+  add task.
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+There are no commands to undo.
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Here are the tasks in your list:
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Bye. Hope to see you again soon!
+────────────────────────────────────────────────────────────
+```
+
 ### typed dates and date query
 Console input:
 ```text
@@ -244,39 +360,39 @@ bye
 Console output:
 ```text
 ────────────────────────────────────────────────────────────
-██████╗  ██╗   ██╗ ██████╗  ███████╗                        
-██╔══██╗ ██║   ██║ ██╔══██╗ ██╔════╝                        
-██║  ██║ ██║   ██║ ██║  ██║ █████╗                          
-██║  ██║ ██║   ██║ ██║  ██║ ██╔══╝                          
-██████╔╝ ╚██████╔╝╚██████╔╝ ███████╗                        
-╚═════╝   ╚═════╝ ╚══════╝  ╚══════╝                        
-Hello! I'm DUDE.                                            
-Dates can be represented in this format: yyyy-MM-dd.        
-To include a time, use this format: yyyy-MM-dd HHmm.        
-What can I do for you?                                      
+██████╗  ██╗   ██╗ ██████╗  ███████╗
+██╔══██╗ ██║   ██║ ██╔══██╗ ██╔════╝
+██║  ██║ ██║   ██║ ██║  ██║ █████╗
+██║  ██║ ██║   ██║ ██║  ██║ ██╔══╝
+██████╔╝ ╚██████╔╝╚██████╔╝ ███████╗
+╚═════╝   ╚═════╝ ╚══════╝  ╚══════╝
+Hello! I'm DUDE.
+Dates can be represented in this format: yyyy-MM-dd.
+To include a time, use this format: yyyy-MM-dd HHmm.
+What can I do for you?
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Got it. I've added this task:                               
-  [D][ ] return book (by: Dec 02 2019 18:00)                
-Now you have 1 tasks in the list.                           
+Got it. I've added this task:
+  [D][ ] return book (by: Dec 02 2019 18:00)
+Now you have 1 tasks in the list.
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Got it. I've added this task:                               
-  [E][ ] project (from: Dec 01 2019 to: Dec 03 2019)        
-Now you have 2 tasks in the list.                           
+Got it. I've added this task:
+  [E][ ] project (from: Dec 01 2019 to: Dec 03 2019)
+Now you have 2 tasks in the list.
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Tasks occurring on 2019-12-02:                              
-1.[D][ ] return book (by: Dec 02 2019 18:00)                
-2.[E][ ] project (from: Dec 01 2019 to: Dec 03 2019)        
+Tasks occurring on 2019-12-02:
+1.[D][ ] return book (by: Dec 02 2019 18:00)
+2.[E][ ] project (from: Dec 01 2019 to: Dec 03 2019)
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Here are the tasks in your list:                            
-1.[D][ ] return book (by: Dec 02 2019 18:00)                
-2.[E][ ] project (from: Dec 01 2019 to: Dec 03 2019)        
+Here are the tasks in your list:
+1.[D][ ] return book (by: Dec 02 2019 18:00)
+2.[E][ ] project (from: Dec 01 2019 to: Dec 03 2019)
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Bye. Hope to see you again soon!                            
+Bye. Hope to see you again soon!
 ────────────────────────────────────────────────────────────
 ```
 
@@ -292,37 +408,37 @@ bye
 Console output:
 ```text
 ────────────────────────────────────────────────────────────
-██████╗  ██╗   ██╗ ██████╗  ███████╗                        
-██╔══██╗ ██║   ██║ ██╔══██╗ ██╔════╝                        
-██║  ██║ ██║   ██║ ██║  ██║ █████╗                          
-██║  ██║ ██║   ██║ ██║  ██║ ██╔══╝                          
-██████╔╝ ╚██████╔╝╚██████╔╝ ███████╗                        
-╚═════╝   ╚═════╝ ╚══════╝  ╚══════╝                        
-Hello! I'm DUDE.                                            
-Dates can be represented in this format: yyyy-MM-dd.        
-To include a time, use this format: yyyy-MM-dd HHmm.        
-What can I do for you?                                      
+██████╗  ██╗   ██╗ ██████╗  ███████╗
+██╔══██╗ ██║   ██║ ██╔══██╗ ██╔════╝
+██║  ██║ ██║   ██║ ██║  ██║ █████╗
+██║  ██║ ██║   ██║ ██║  ██║ ██╔══╝
+██████╔╝ ╚██████╔╝╚██████╔╝ ███████╗
+╚═════╝   ╚═════╝ ╚══════╝  ╚══════╝
+Hello! I'm DUDE.
+Dates can be represented in this format: yyyy-MM-dd.
+To include a time, use this format: yyyy-MM-dd HHmm.
+What can I do for you?
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Error: invalid by "2019-02-29" for deadline.                
-Expected: yyyy-MM-dd or yyyy-MM-dd HHmm.                    
+Error: invalid by "2019-02-29" for deadline.
+Expected: yyyy-MM-dd or yyyy-MM-dd HHmm.
 Usage: deadline <description> /by [31m<yyyy-MM-dd [HHmm]>[0m
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Error: invalid to "2019-12-02" for event.                   
-Expected: a date on or after the start date.                
+Error: invalid to "2019-12-02" for event.
+Expected: a date on or after the start date.
 Usage: event <description> /from [31m<yyyy-MM-dd [HHmm]>[0m /to [31m<yyyy-MM-dd [HHmm]>[0m
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Error: invalid date "2019-02-30" for on.                    
-Expected: yyyy-MM-dd.                                       
-Usage: on [31m<yyyy-MM-dd>[0m                             
+Error: invalid date "2019-02-30" for on.
+Expected: yyyy-MM-dd.
+Usage: on [31m<yyyy-MM-dd>[0m
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Here are the tasks in your list:                            
+Here are the tasks in your list:
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Bye. Hope to see you again soon!                            
+Bye. Hope to see you again soon!
 ────────────────────────────────────────────────────────────
 ```
 
@@ -335,24 +451,24 @@ bye
 Console output:
 ```text
 ────────────────────────────────────────────────────────────
-██████╗  ██╗   ██╗ ██████╗  ███████╗                        
-██╔══██╗ ██║   ██║ ██╔══██╗ ██╔════╝                        
-██║  ██║ ██║   ██║ ██║  ██║ █████╗                          
-██║  ██║ ██║   ██║ ██║  ██║ ██╔══╝                          
-██████╔╝ ╚██████╔╝╚██████╔╝ ███████╗                        
-╚═════╝   ╚═════╝ ╚══════╝  ╚══════╝                        
-Hello! I'm DUDE.                                            
-Dates can be represented in this format: yyyy-MM-dd.        
-To include a time, use this format: yyyy-MM-dd HHmm.        
-What can I do for you?                                      
+██████╗  ██╗   ██╗ ██████╗  ███████╗
+██╔══██╗ ██║   ██║ ██╔══██╗ ██╔════╝
+██║  ██║ ██║   ██║ ██║  ██║ █████╗
+██║  ██║ ██║   ██║ ██║  ██║ ██╔══╝
+██████╔╝ ╚██████╔╝╚██████╔╝ ███████╗
+╚═════╝   ╚═════╝ ╚══════╝  ╚══════╝
+Hello! I'm DUDE.
+Dates can be represented in this format: yyyy-MM-dd.
+To include a time, use this format: yyyy-MM-dd HHmm.
+What can I do for you?
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Here are the tasks in your list:                            
-1.[C][ ] [Corrupted: not json]                              
+Here are the tasks in your list:
+1.[C][ ] [Corrupted: not json]
 2.[C][ ] [Corrupted: {"type":"D","done":false,"description":"old","by":"Sunday"}]
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Bye. Hope to see you again soon!                            
+Bye. Hope to see you again soon!
 ────────────────────────────────────────────────────────────
 ```
 
@@ -370,46 +486,46 @@ bye
 Console output:
 ```text
 ────────────────────────────────────────────────────────────
-██████╗  ██╗   ██╗ ██████╗  ███████╗                        
-██╔══██╗ ██║   ██║ ██╔══██╗ ██╔════╝                        
-██║  ██║ ██║   ██║ ██║  ██║ █████╗                          
-██║  ██║ ██║   ██║ ██║  ██║ ██╔══╝                          
-██████╔╝ ╚██████╔╝╚██████╔╝ ███████╗                        
-╚═════╝   ╚═════╝ ╚══════╝  ╚══════╝                        
-Hello! I'm DUDE.                                            
-Dates can be represented in this format: yyyy-MM-dd.        
-To include a time, use this format: yyyy-MM-dd HHmm.        
-What can I do for you?                                      
+██████╗  ██╗   ██╗ ██████╗  ███████╗
+██╔══██╗ ██║   ██║ ██╔══██╗ ██╔════╝
+██║  ██║ ██║   ██║ ██║  ██║ █████╗
+██║  ██║ ██║   ██║ ██║  ██║ ██╔══╝
+██████╔╝ ╚██████╔╝╚██████╔╝ ███████╗
+╚═════╝   ╚═════╝ ╚══════╝  ╚══════╝
+Hello! I'm DUDE.
+Dates can be represented in this format: yyyy-MM-dd.
+To include a time, use this format: yyyy-MM-dd HHmm.
+What can I do for you?
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Got it. I've added this task:                               
-  [T][ ] read book                                          
-Now you have 1 tasks in the list.                           
+Got it. I've added this task:
+  [T][ ] read book
+Now you have 1 tasks in the list.
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Got it. I've added this task:                               
-  [D][ ] return book (by: Dec 02 2019)                      
-Now you have 2 tasks in the list.                           
+Got it. I've added this task:
+  [D][ ] return book (by: Dec 02 2019)
+Now you have 2 tasks in the list.
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Got it. I've added this task:                               
-  [T][ ] buy milk                                           
-Now you have 3 tasks in the list.                           
+Got it. I've added this task:
+  [T][ ] buy milk
+Now you have 3 tasks in the list.
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Here are the matching tasks in your list:                   
-1.[T][ ] read book                                          
-2.[D][ ] return book (by: Dec 02 2019)                      
+Here are the matching tasks in your list:
+1.[T][ ] read book
+2.[D][ ] return book (by: Dec 02 2019)
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Here are the matching tasks in your list:                   
+Here are the matching tasks in your list:
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Error: invalid keyword <missing> for find.                  
-Expected: a non-blank keyword.                              
-Usage: find [31m<keyword>[0m                              
+Error: invalid keyword <missing> for find.
+Expected: a non-blank keyword.
+Usage: find [31m<keyword>[0m
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
-Bye. Hope to see you again soon!                            
+Bye. Hope to see you again soon!
 ────────────────────────────────────────────────────────────
 ```

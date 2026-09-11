@@ -1,38 +1,35 @@
 package dude.command;
 
-import java.time.LocalDate;
-
 import dude.exception.UsageException;
-import dude.parser.Parser;
 import dude.storage.Storage;
 import dude.task.TaskList;
 import dude.ui.Ui;
 
 /**
- * Executes the date-query command.
+ * Reverses the most recent side-effect command.
  */
-public class OnCommand extends Command {
+public class UndoCommand extends Command {
     /**
-     * Creates a date-query command.
+     * Creates an undo command.
      *
-     * @param argument Date argument.
+     * @param argument Ignored undo argument.
      */
-    public OnCommand(String argument) {
+    public UndoCommand(String argument) {
         super(argument);
     }
 
     /**
-     * Displays tasks occurring on the requested date.
+     * Applies the latest undo action.
      *
      * @param tasks   Application task list.
      * @param ui      User-interface handler.
      * @param storage Persistence handler.
-     * @throws UsageException If the date is invalid.
+     * @param history Session undo history.
+     * @throws UsageException Never thrown; retained for the command contract.
      */
     @Override
     public void execute(TaskList tasks, Ui ui, Storage storage, UndoHistory history)
             throws UsageException {
-        LocalDate date = Parser.parseDate(argument);
-        ui.showTasksOnDate(tasks, date);
+        history.undo(tasks, ui, storage);
     }
 }

@@ -43,7 +43,11 @@ public enum CommandType {
     /**
      * Creates an event task.
      */
-    EVENT("event", "Usage: event <description> /from <yyyy-MM-dd [HHmm]> /to <yyyy-MM-dd [HHmm]>");
+    EVENT("event", "Usage: event <description> /from <yyyy-MM-dd [HHmm]> /to <yyyy-MM-dd [HHmm]>"),
+    /**
+     * Reverses the most recent side-effect command.
+     */
+    UNDO("undo", "Usage: undo");
 
     private final String word;
     private final String usageMessage;

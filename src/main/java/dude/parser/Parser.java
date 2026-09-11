@@ -13,6 +13,7 @@ import dude.command.ListCommand;
 import dude.command.MarkCommand;
 import dude.command.OnCommand;
 import dude.command.UnmarkCommand;
+import dude.command.UndoCommand;
 import dude.exception.UsageException;
 
 /**
@@ -51,6 +52,7 @@ public class Parser {
             case UNMARK -> new UnmarkCommand(argument);
             case DELETE -> new DeleteCommand(argument);
             case TODO, DEADLINE, EVENT -> new AddCommand(commandType, argument);
+            case UNDO -> new UndoCommand(argument);
         };
     }
 
