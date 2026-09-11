@@ -39,6 +39,18 @@ public class TaskList {
     }
 
     /**
+     * Inserts a task at a zero-based index.
+     *
+     * @param index Zero-based insertion index.
+     * @param task  Task to insert.
+     */
+    public void insert(int index, Task task) {
+        assert task != null;
+        assert index >= 0 && index <= tasks.size();
+        tasks.add(index, task);
+    }
+
+    /**
      * Returns the task at a zero-based index.
      *
      * @param index Zero-based task index.

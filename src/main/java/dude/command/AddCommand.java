@@ -35,7 +35,8 @@ public class AddCommand extends Command {
      * @throws UsageException If the task details are invalid.
      */
     @Override
-    public void execute(TaskList tasks, Ui ui, Storage storage) throws UsageException {
+    public void execute(TaskList tasks, Ui ui, Storage storage, UndoHistory history)
+            throws UsageException {
         Task task = switch (commandType) {
             case TODO -> Todo.fromInput(argument);
             case DEADLINE -> Deadline.fromInput(argument);
@@ -43,6 +44,9 @@ public class AddCommand extends Command {
             default -> throw new IllegalArgumentException("Unsupported add command");
         };
         addAndShow(task, tasks, ui);
+        int index = tasks.size() - 1;
+        history.record(new UndoAction("add task", list -> list.remove(index),
+                list -> list.insert(index, task)));
         save(tasks, ui, storage);
     }
 }

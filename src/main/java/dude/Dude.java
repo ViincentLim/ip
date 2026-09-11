@@ -3,6 +3,7 @@ package dude;
 import java.io.IOException;
 
 import dude.command.Command;
+import dude.command.UndoHistory;
 import dude.exception.UsageException;
 import dude.parser.Parser;
 import dude.storage.Storage;
@@ -17,6 +18,7 @@ public class Dude {
     private final Ui ui;
     private final Parser parser;
     private TaskList tasks;
+    private final UndoHistory history;
 
     /**
      * Creates an application using standard input and the default storage.
@@ -37,6 +39,7 @@ public class Dude {
         this.ui = ui;
         this.parser = parser;
         this.tasks = new TaskList();
+        this.history = new UndoHistory();
     }
 
     /**
@@ -64,7 +67,7 @@ public class Dude {
                 }
                 ui.showLine();
                 Command command = Parser.parse(fullCommand);
-                command.execute(tasks, ui, storage);
+                command.execute(tasks, ui, storage, history);
                 isExit = command.isExit();
             } catch (UsageException exception) {
                 ui.showError(exception);

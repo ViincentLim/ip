@@ -25,7 +25,7 @@ public class ListCommand extends Command {
      * @param storage Persistence handler.
      */
     @Override
-    public void execute(TaskList tasks, Ui ui, Storage storage) {
+    public void execute(TaskList tasks, Ui ui, Storage storage, UndoHistory history) {
         ui.showTaskList(tasks);
     }
 }

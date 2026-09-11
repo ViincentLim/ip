@@ -27,7 +27,8 @@ public class FindCommand extends Command {
      * @throws UsageException If the keyword is missing or blank.
      */
     @Override
-    public void execute(TaskList tasks, Ui ui, Storage storage) throws UsageException {
+    public void execute(TaskList tasks, Ui ui, Storage storage, UndoHistory history)
+            throws UsageException {
         if (argument == null || argument.isBlank()) {
             throw new UsageException("find", "keyword", "<missing>",
                     "a non-blank keyword", CommandType.FIND.getUsageMessage(), "<keyword>");

@@ -28,9 +28,21 @@ public class MarkCommand extends Command {
      * @throws UsageException If the task number is invalid.
      */
     @Override
-    public void execute(TaskList tasks, Ui ui, Storage storage) throws UsageException {
+    public void execute(TaskList tasks, Ui ui, Storage storage, UndoHistory history)
+            throws UsageException {
         Task task = tasks.get(parseTaskIndex(tasks, CommandType.MARK));
+        boolean wasDone = task.isDone();
         updateAndShow(task, CommandType.MARK, ui);
+        history.record(new UndoAction("mark task", list -> setDone(task, wasDone),
+                list -> setDone(task, true)));
         save(tasks, ui, storage);
+    }
+
+    private static void setDone(Task task, boolean isDone) {
+        if (isDone) {
+            task.markAsDone();
+        } else {
+            task.markAsNotDone();
+        }
     }
 }

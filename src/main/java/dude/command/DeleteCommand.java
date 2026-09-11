@@ -28,9 +28,13 @@ public class DeleteCommand extends Command {
      * @throws UsageException If the task number is invalid.
      */
     @Override
-    public void execute(TaskList tasks, Ui ui, Storage storage) throws UsageException {
-        Task task = tasks.remove(parseTaskIndex(tasks, CommandType.DELETE));
+    public void execute(TaskList tasks, Ui ui, Storage storage, UndoHistory history)
+            throws UsageException {
+        int index = parseTaskIndex(tasks, CommandType.DELETE);
+        Task task = tasks.remove(index);
         ui.showDeletedTask(task, tasks.size());
+        history.record(new UndoAction("delete task", list -> list.insert(index, task),
+                list -> list.remove(index)));
         save(tasks, ui, storage);
     }
 }
