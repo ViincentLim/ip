@@ -60,6 +60,23 @@ public class Task {
     }
 
     /**
+     * Counts occurrences of a standalone delimiter token.
+     *
+     * @param input Input text to inspect.
+     * @param token Delimiter token.
+     * @return Number of standalone occurrences.
+     */
+    protected static int countStandaloneTokens(String input, String token) {
+        Matcher matcher = Pattern.compile("(?<!\\S)" + Pattern.quote(token) + "(?!\\S)")
+                .matcher(input);
+        int count = 0;
+        while (matcher.find()) {
+            count++;
+        }
+        return count;
+    }
+
+    /**
      * Returns the completion marker used when displaying this task.
      *
      * @return X for a completed task, or a blank space otherwise.

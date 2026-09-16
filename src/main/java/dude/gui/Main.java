@@ -42,7 +42,8 @@ public class Main extends Application {
 
         controller.loadTasks();
         taskList.setText(controller.renderTasks());
-        responses.setText("Welcome to DUDE. Enter a command below.\n");
+        responses.setText("Welcome to DUDE. Enter a command below.\n"
+                + controller.getLoadMessage());
 
         Runnable executeCommand = () -> {
             String command = commandInput.getText();

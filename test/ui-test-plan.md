@@ -171,7 +171,7 @@ Usage: deadline <description> /by <yyyy-MM-dd [HHmm]>
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
 Error: invalid to "2019-12-02" for event.
-Expected: a date on or after the start date.
+Expected: a date after the start date.
 Usage: event <description> /from <yyyy-MM-dd [HHmm]> /to <yyyy-MM-dd [HHmm]>
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
@@ -287,6 +287,89 @@ Here are the tasks I found, dude:
 Error: invalid keyword <missing> for find.
 Expected: a non-blank keyword.
 Usage: find <keyword>
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Catch you later, dude!
+────────────────────────────────────────────────────────────
+```
+## Test case: duplicate task resolution
+
+Aim: Verify that normalized duplicate descriptions can be added, edited, or cancelled through the CLI.
+
+### Inputs
+
+```text
+todo read book
+todo READ   BOOK
+ad
+todo Read Book
+e
+1
+todo read book
+c
+list extra
+bye
+```
+
+### Expected output
+
+```text
+────────────────────────────────────────────────────────────
+██████╗  ██╗   ██╗ ██████╗  ███████╗
+██╔══██╗ ██║   ██║ ██╔══██╗ ██╔════╝
+██║  ██║ ██║   ██║ ██║  ██║ █████╗
+██║  ██║ ██║   ██║ ██║  ██║ ██╔══╝
+██████╔╝ ╚██████╔╝╚██████╔╝ ███████╗
+╚═════╝   ╚═════╝ ╚══════╝  ╚══════╝
+Hey! I'm DUDE, your dependable task buddy.
+Dates can be represented in this format: yyyy-MM-dd.
+To include a time, use this format: yyyy-MM-dd HHmm.
+What can I help you with, dude?
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Nice, dude — I've added this task:
+  [T][ ] read book
+Now you have 1 tasks in the list.
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+I found a task with the same description, dude:
+1.[T][ ] read book
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Edit [E], add [A], or cancel [C]?
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Nice, dude — I've added this task:
+  [T][ ] READ   BOOK
+Now you have 2 tasks in the list.
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+I found a task with the same description, dude:
+1.[T][ ] read book
+2.[T][ ] READ   BOOK
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Edit [E], add [A], or cancel [C]?
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Which matching task number should I edit?
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Updated, dude — I've replaced the matching task:
+  [T][ ] Read Book
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+I found a task with the same description, dude:
+1.[T][ ] Read Book
+2.[T][ ] READ   BOOK
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Edit [E], add [A], or cancel [C]?
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Error: invalid argument "extra" for list.
+Expected: no arguments.
+Usage: [31mlist[0m
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
 Catch you later, dude!
@@ -426,7 +509,7 @@ Usage: deadline <description> /by [31m<yyyy-MM-dd [HHmm]>[0m
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
 Error: invalid to "2019-12-02" for event.                   
-Expected: a date on or after the start date.                
+Expected: a date after the start date.                      
 Usage: event <description> /from [31m<yyyy-MM-dd [HHmm]>[0m /to [31m<yyyy-MM-dd [HHmm]>[0m
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
@@ -524,6 +607,84 @@ Here are the tasks I found, dude:
 Error: invalid keyword <missing> for find.                  
 Expected: a non-blank keyword.                              
 Usage: find [31m<keyword>[0m                              
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Catch you later, dude!                                      
+────────────────────────────────────────────────────────────
+```
+
+### duplicate task resolution
+Console input:
+```text
+todo read book
+todo READ   BOOK
+ad
+todo Read Book
+e
+1
+todo read book
+c
+list extra
+bye
+```
+Console output:
+```text
+────────────────────────────────────────────────────────────
+██████╗  ██╗   ██╗ ██████╗  ███████╗                        
+██╔══██╗ ██║   ██║ ██╔══██╗ ██╔════╝                        
+██║  ██║ ██║   ██║ ██║  ██║ █████╗                          
+██║  ██║ ██║   ██║ ██║  ██║ ██╔══╝                          
+██████╔╝ ╚██████╔╝╚██████╔╝ ███████╗                        
+╚═════╝   ╚═════╝ ╚══════╝  ╚══════╝                        
+Hey! I'm DUDE, your dependable task buddy.                  
+Dates can be represented in this format: yyyy-MM-dd.        
+To include a time, use this format: yyyy-MM-dd HHmm.        
+What can I help you with, dude?                             
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Nice, dude — I've added this task:                          
+  [T][ ] read book                                          
+Now you have 1 tasks in the list.                           
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+I found a task with the same description, dude:             
+1.[T][ ] read book                                          
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Edit [E], add [A], or cancel [C]?                           
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Nice, dude — I've added this task:                          
+  [T][ ] READ   BOOK                                        
+Now you have 2 tasks in the list.                           
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+I found a task with the same description, dude:             
+1.[T][ ] read book                                          
+2.[T][ ] READ   BOOK                                        
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Edit [E], add [A], or cancel [C]?                           
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Which matching task number should I edit?                   
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Updated, dude — I've replaced the matching task:            
+  [T][ ] Read Book                                          
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+I found a task with the same description, dude:             
+1.[T][ ] Read Book                                          
+2.[T][ ] READ   BOOK                                        
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Edit [E], add [A], or cancel [C]?                           
+────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────
+Error: invalid argument "extra" for list.                   
+Expected: no arguments.                                     
+Usage: [31mlist[0m                                        
 ────────────────────────────────────────────────────────────
 ────────────────────────────────────────────────────────────
 Catch you later, dude!                                      

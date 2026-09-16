@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 import dude.command.Command;
+import dude.command.DuplicateResolutionHandler;
 import dude.command.UndoHistory;
 import dude.exception.UsageException;
 import dude.parser.Parser;
@@ -21,14 +22,26 @@ import dude.ui.Ui;
 public class GuiController {
     private final Storage storage;
     private final UndoHistory history;
+    private final DuplicateResolutionHandler resolutionHandler;
     private TaskList tasks;
+    private String loadMessage = "";
 
     /**
      * Creates a controller using the default storage location.
      */
     public GuiController() {
+        this(new DialogDuplicateResolutionHandler());
+    }
+
+    /**
+     * Creates a controller with an injected duplicate-conflict interaction handler.
+     *
+     * @param resolutionHandler Handler used when adding a duplicate task.
+     */
+    public GuiController(DuplicateResolutionHandler resolutionHandler) {
         storage = new Storage();
         history = new UndoHistory();
+        this.resolutionHandler = resolutionHandler;
         tasks = new TaskList();
     }
 
@@ -38,9 +51,20 @@ public class GuiController {
     public void loadTasks() {
         try {
             tasks = storage.loadTasks();
+            loadMessage = "";
         } catch (IOException exception) {
             tasks = new TaskList();
+            loadMessage = "I couldn't load your tasks, dude. Starting with an empty task list.";
         }
+    }
+
+    /**
+     * Returns a startup storage message for the GUI response area.
+     *
+     * @return Empty text when loading succeeded, otherwise an error message.
+     */
+    public String getLoadMessage() {
+        return loadMessage;
     }
 
     /**
@@ -55,7 +79,7 @@ public class GuiController {
             Ui outputUi = new Ui(new Scanner(""), output);
             try {
                 Command command = Parser.parse(input);
-                command.execute(tasks, outputUi, storage, history);
+                command.execute(tasks, outputUi, storage, history, resolutionHandler);
             } catch (UsageException exception) {
                 outputUi.showError(exception);
             }

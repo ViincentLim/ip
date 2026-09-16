@@ -40,6 +40,9 @@ public class Deadline extends Task {
         }
 
         String trimmed = input.trim();
+        if (countStandaloneTokens(trimmed, "/by") != 1) {
+            throw usageError("by", trimmed, "exactly one /by delimiter", "/by");
+        }
         String[] deadlineParts = splitAt(trimmed, "/by");
         if (deadlineParts == null) {
             String token = containsStandaloneToken(trimmed, "/by") ? "<date or time>" : "/by";

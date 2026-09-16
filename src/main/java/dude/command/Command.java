@@ -65,6 +65,22 @@ public abstract class Command {
             throws UsageException;
 
     /**
+     * Executes this command with an interface-specific duplicate resolver.
+     * Commands other than task creation retain their standard behaviour.
+     *
+     * @param tasks             Application task list.
+     * @param ui                User-interface handler.
+     * @param storage           Persistence handler.
+     * @param history           Session undo history.
+     * @param resolutionHandler Duplicate-conflict interaction handler.
+     * @throws UsageException If the command argument is invalid.
+     */
+    public void execute(TaskList tasks, Ui ui, Storage storage, UndoHistory history,
+            DuplicateResolutionHandler resolutionHandler) throws UsageException {
+        execute(tasks, ui, storage, history);
+    }
+
+    /**
      * Returns whether executing this command should terminate the application.
      *
      * @return True only for the exit command.

@@ -32,6 +32,8 @@ public class Storage {
      * Relative path of the legacy task file supported during migration.
      */
     private static final Path LEGACY_DATA_FILE = Path.of("data", "duke.txt");
+    private final Path dataFile;
+    private final Path legacyDataFile;
     private static final String TYPE_FIELD = "type";
     private static final String DONE_FIELD = "done";
     private static final String DESCRIPTION_FIELD = "description";
@@ -45,6 +47,18 @@ public class Storage {
      * Creates a storage handler for the default task data file.
      */
     public Storage() {
+        this(DATA_FILE, LEGACY_DATA_FILE);
+    }
+
+    /**
+     * Creates a storage handler using explicit data paths.
+     *
+     * @param dataFile       JSONL task file.
+     * @param legacyDataFile Legacy task file used for migration.
+     */
+    public Storage(Path dataFile, Path legacyDataFile) {
+        this.dataFile = dataFile;
+        this.legacyDataFile = legacyDataFile;
     }
 
     private static ArrayList<Task> readTasks(Path file) throws IOException {
@@ -68,13 +82,13 @@ public class Storage {
     /**
      * Replaces the data file with the completed temporary file.
      */
-    private static void replaceDataFile(Path temporaryFile) throws IOException {
+    private static void replaceDataFile(Path temporaryFile, Path dataFile) throws IOException {
         try {
-            Files.move(temporaryFile, DATA_FILE,
+            Files.move(temporaryFile, dataFile,
                     java.nio.file.StandardCopyOption.ATOMIC_MOVE,
                     java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         } catch (AtomicMoveNotSupportedException exception) {
-            Files.move(temporaryFile, DATA_FILE,
+            Files.move(temporaryFile, dataFile,
                     java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         }
     }
@@ -217,19 +231,19 @@ public class Storage {
      * @throws IOException If the data directory or file cannot be accessed.
      */
     public TaskList loadTasks() throws IOException {
-        Files.createDirectories(DATA_FILE.getParent());
+        Files.createDirectories(dataFile.getParent());
 
-        if (Files.exists(DATA_FILE)) {
-            return new TaskList(readTasks(DATA_FILE));
+        if (Files.exists(dataFile)) {
+            return new TaskList(readTasks(dataFile));
         }
 
-        if (Files.exists(LEGACY_DATA_FILE)) {
-            ArrayList<Task> tasks = readTasks(LEGACY_DATA_FILE);
+        if (Files.exists(legacyDataFile)) {
+            ArrayList<Task> tasks = readTasks(legacyDataFile);
             saveTasks(new TaskList(tasks));
             return new TaskList(tasks);
         }
 
-        Files.createFile(DATA_FILE);
+        Files.createFile(dataFile);
         return new TaskList();
     }
 
@@ -240,15 +254,15 @@ public class Storage {
      * @throws IOException If the data directory or file cannot be accessed.
      */
     public void saveTasks(TaskList tasks) throws IOException {
-        Files.createDirectories(DATA_FILE.getParent());
-        Path temporaryFile = Files.createTempFile(DATA_FILE.getParent(), "duke", ".tmp");
+        Files.createDirectories(dataFile.getParent());
+        Path temporaryFile = Files.createTempFile(dataFile.getParent(), "duke", ".tmp");
 
         try {
             List<String> lines = tasks.asList().stream()
                     .map(Storage::serializeTask)
                     .toList();
             Files.write(temporaryFile, lines, StandardCharsets.UTF_8);
-            replaceDataFile(temporaryFile);
+            replaceDataFile(temporaryFile, dataFile);
         } finally {
             Files.deleteIfExists(temporaryFile);
         }
