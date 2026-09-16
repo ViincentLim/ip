@@ -9,6 +9,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import dude.command.CommandType;
+import dude.command.DuplicateTaskConflict;
 import dude.exception.UsageException;
 import dude.task.Deadline;
 import dude.task.Event;
@@ -126,6 +127,15 @@ public class Ui {
     }
 
     /**
+     * Reads one raw input line, including a blank line.
+     *
+     * @return Input line, or null at end of input.
+     */
+    public String readInputLine() {
+        return scanner.hasNextLine() ? scanner.nextLine() : null;
+    }
+
+    /**
      * Displays one divider line.
      */
     public void showLine() {
@@ -212,6 +222,15 @@ public class Ui {
     }
 
     /**
+     * Displays a successful replacement of a duplicate task.
+     *
+     * @param task Replacement task.
+     */
+    public void showEditedTask(Task task) {
+        printBox("Updated, dude — I've replaced the matching task:", "  " + task);
+    }
+
+    /**
      * Displays a successful deletion.
      *
      * @param task      Deleted task.
@@ -253,6 +272,48 @@ public class Ui {
     public void showSavingError() {
         printBox("I couldn't save your tasks, dude.",
                 "The change remains in memory for this session.");
+    }
+
+    /**
+     * Displays the tasks that caused a duplicate-task conflict.
+     *
+     * @param conflict Duplicate task details.
+     */
+    public void showDuplicateConflict(DuplicateTaskConflict conflict) {
+        String[] lines = Stream.concat(
+                        Stream.of("I found a task with the same description, dude:"),
+                        conflict.matches().stream().map(match -> String.format("%d.%s",
+                                match.index() + 1, match.task())))
+                .toArray(String[]::new);
+        printBox(lines);
+    }
+
+    /**
+     * Displays the duplicate-resolution choices.
+     */
+    public void showDuplicatePrompt() {
+        printBox("Edit [E], add [A], or cancel [C]?");
+    }
+
+    /**
+     * Displays the prompt used to choose among multiple duplicate tasks.
+     */
+    public void showDuplicateSelection() {
+        printBox("Which matching task number should I edit?");
+    }
+
+    /**
+     * Displays feedback for an invalid duplicate-resolution choice.
+     */
+    public void showInvalidDuplicateChoice() {
+        printBox("Please choose Edit, Add, or Cancel, dude.");
+    }
+
+    /**
+     * Displays feedback for an invalid duplicate-task selection.
+     */
+    public void showInvalidDuplicateSelection() {
+        printBox("Please choose one of the matching task numbers, dude.");
     }
 
     /**

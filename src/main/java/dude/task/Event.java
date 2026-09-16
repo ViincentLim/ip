@@ -31,7 +31,7 @@ public class Event extends Task {
      */
     public Event(String description, TaskDate from, TaskDate to) {
         super(description);
-        if (to.effectiveDateTime().isBefore(from.effectiveDateTime())) {
+        if (!to.effectiveDateTime().isAfter(from.effectiveDateTime())) {
             throw new IllegalArgumentException("Event end precedes event start");
         }
         this.from = from;
@@ -51,6 +51,11 @@ public class Event extends Task {
         }
 
         String trimmed = input.trim();
+        if (countStandaloneTokens(trimmed, "/from") != 1
+                || countStandaloneTokens(trimmed, "/to") != 1) {
+            throw usageError("details", trimmed, "exactly one /from and one /to delimiter",
+                    "/from");
+        }
         String[] eventParts = splitAt(trimmed, "/from");
         if (eventParts == null) {
             String token = containsStandaloneToken(trimmed, "/from") ? "<description>" : "/from";
@@ -82,7 +87,7 @@ public class Event extends Task {
         try {
             return new Event(eventParts[0], from, to);
         } catch (IllegalArgumentException exception) {
-            throw usageError("to", timeParts[1], "a date on or after the start date",
+            throw usageError("to", timeParts[1], "a date after the start date",
                     "<yyyy-MM-dd [HHmm]>", exception);
         }
     }

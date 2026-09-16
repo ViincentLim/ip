@@ -75,6 +75,19 @@ public class TaskList {
     }
 
     /**
+     * Replaces a task at a zero-based index and returns the previous task.
+     *
+     * @param index Zero-based replacement index.
+     * @param task  Replacement task.
+     * @return Task that was replaced.
+     */
+    public Task replace(int index, Task task) {
+        assert task != null;
+        assert index >= 0 && index < tasks.size();
+        return tasks.set(index, task);
+    }
+
+    /**
      * Returns the number of tasks in this list.
      *
      * @return Number of tasks.
@@ -104,6 +117,32 @@ public class TaskList {
         return tasks.stream()
                 .filter(task -> task.getDescription().toLowerCase(Locale.ROOT).contains(normalizedKeyword))
                 .toList();
+    }
+
+    /**
+     * Returns indexes of tasks whose normalized descriptions are equal.
+     *
+     * @param description Description to compare.
+     * @return Matching zero-based indexes in their original order.
+     */
+    public List<Integer> findDuplicateIndexes(String description) {
+        String normalizedDescription = normalizeDescription(description);
+        return java.util.stream.IntStream.range(0, tasks.size())
+                .filter(index -> normalizeDescription(tasks.get(index).getDescription())
+                        .equals(normalizedDescription))
+                .boxed()
+                .toList();
+    }
+
+    /**
+     * Normalizes description whitespace and case for duplicate comparison.
+     *
+     * @param description Description to normalize.
+     * @return Trimmed, whitespace-collapsed, lower-case description.
+     */
+    public static String normalizeDescription(String description) {
+        assert description != null;
+        return description.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
     }
 
     /**

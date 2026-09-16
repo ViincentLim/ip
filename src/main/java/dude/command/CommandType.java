@@ -7,11 +7,11 @@ public enum CommandType {
     /**
      * Terminates the application.
      */
-    BYE("bye", null),
+    BYE("bye", "Usage: bye"),
     /**
      * Displays all tasks.
      */
-    LIST("list", null),
+    LIST("list", "Usage: list"),
     /**
      * Finds tasks whose descriptions contain a keyword.
      */

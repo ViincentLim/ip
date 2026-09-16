@@ -38,22 +38,50 @@ public class Parser {
      * @throws UsageException If the command word is unknown.
      */
     public static Command parse(String input) throws UsageException {
+        if (input == null || input.isBlank()) {
+            throw new UsageException("", "command", "<missing>",
+                    "todo, deadline, event, on, or find", COMMAND_USAGE, "<task type>");
+        }
         String[] commandParts = input.trim().split("\\s+", 2);
         String action = commandParts[0];
         String argument = commandParts.length > 1 ? commandParts[1] : null;
 
         CommandType commandType = parseType(action);
         return switch (commandType) {
-            case BYE -> new ExitCommand(argument);
-            case LIST -> new ListCommand(argument);
+            case BYE -> {
+                requireNoArgument(commandType, argument);
+                yield new ExitCommand(null);
+            }
+            case LIST -> {
+                requireNoArgument(commandType, argument);
+                yield new ListCommand(null);
+            }
             case FIND -> new FindCommand(argument);
             case ON -> new OnCommand(argument);
             case MARK -> new MarkCommand(argument);
             case UNMARK -> new UnmarkCommand(argument);
             case DELETE -> new DeleteCommand(argument);
             case TODO, DEADLINE, EVENT -> new AddCommand(commandType, argument);
-            case UNDO -> new UndoCommand(argument);
+            case UNDO -> {
+                requireNoArgument(commandType, argument);
+                yield new UndoCommand(null);
+            }
         };
+    }
+
+    /**
+     * Rejects arguments for commands that intentionally take none.
+     *
+     * @param commandType Command being parsed.
+     * @param argument   Raw argument, if supplied.
+     * @throws UsageException If an argument was supplied.
+     */
+    private static void requireNoArgument(CommandType commandType, String argument)
+            throws UsageException {
+        if (argument != null && !argument.isBlank()) {
+            throw new UsageException(commandType.getWord(), "argument", argument,
+                    "no arguments", commandType.getUsageMessage(), commandType.getWord());
+        }
     }
 
     private static CommandType parseType(String action) throws UsageException {
