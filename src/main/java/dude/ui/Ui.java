@@ -95,10 +95,10 @@ public class Ui {
                 + "██████╔╝ ╚██████╔╝╚██████╔╝ "
                 + "███████╗\n"
                 + "╚═════╝   ╚═════╝ ╚══════╝  ╚══════╝";
-        printBox(banner, "Hello! I'm DUDE.",
+        printBox(banner, "Hey! I'm DUDE, your dependable task buddy.",
                 "Dates can be represented in this format: yyyy-MM-dd.",
                 "To include a time, use this format: yyyy-MM-dd HHmm.",
-                "What can I do for you?");
+                "What can I help you with, dude?");
     }
 
     /**
@@ -139,7 +139,7 @@ public class Ui {
      * Displays the standard goodbye message.
      */
     public void showGoodbye() {
-        printBox("Bye. Hope to see you again soon!");
+        printBox("Catch you later, dude!");
     }
 
     /**
@@ -149,7 +149,7 @@ public class Ui {
      */
     public void showTaskList(TaskList tasks) {
         String[] taskLines = Stream.concat(
-                        Stream.of("Here are the tasks in your list:"),
+                        Stream.of("Here's your task list, dude:"),
                         IntStream.range(0, tasks.size())
                                 .mapToObj(i -> String.format("%d.%s", i + 1, tasks.get(i))))
                 .toArray(String[]::new);
@@ -163,7 +163,7 @@ public class Ui {
      */
     public void showMatchingTasks(List<Task> matchingTasks) {
         String[] taskLines = Stream.concat(
-                        Stream.of("Here are the matching tasks in your list:"),
+                        Stream.of("Here are the tasks I found, dude:"),
                         IntStream.range(0, matchingTasks.size())
                                 .mapToObj(i -> String.format("%d.%s", i + 1, matchingTasks.get(i))))
                 .toArray(String[]::new);
@@ -178,7 +178,7 @@ public class Ui {
      */
     public void showTasksOnDate(TaskList tasks, LocalDate date) {
         String[] taskLines = Stream.concat(
-                        Stream.of(String.format("Tasks occurring on %s:", date)),
+                        Stream.of(String.format("Here's what you have on %s:", date)),
                         IntStream.range(0, tasks.size())
                                 .filter(index -> occursOn(tasks.get(index), date))
                                 .mapToObj(index -> String.format("%d.%s", index + 1, tasks.get(index))))
@@ -193,7 +193,7 @@ public class Ui {
      * @param taskCount Number of tasks after the addition.
      */
     public void showAddedTask(Task task, int taskCount) {
-        printBox("Got it. I've added this task:",
+        printBox("Nice, dude — I've added this task:",
                 "  " + task,
                 String.format("Now you have %d tasks in the list.", taskCount));
     }
@@ -206,8 +206,8 @@ public class Ui {
      */
     public void showUpdatedTask(Task task, CommandType commandType) {
         String message = commandType == CommandType.MARK
-                ? "Nice! I've marked this task as done:"
-                : "OK, I've marked this task as not done yet:";
+                ? "Solid work, dude — this task is done:"
+                : "No worries, dude — this task is back in progress:";
         printBox(message, "  " + task);
     }
 
@@ -218,7 +218,7 @@ public class Ui {
      * @param taskCount Number of tasks after deletion.
      */
     public void showDeletedTask(Task task, int taskCount) {
-        printBox("Noted. I've removed this task:",
+        printBox("All right, dude — I've removed this task:",
                 "  " + task,
                 String.format("Now you have %d tasks in the list.", taskCount));
     }
@@ -229,21 +229,21 @@ public class Ui {
      * @param description Description of the reversed command.
      */
     public void showUndo(String description) {
-        printBox("Undid the last command:", "  " + description + ".");
+        printBox("Done, dude — I rolled back:", "  " + description + ".");
     }
 
     /**
      * Displays that there are no commands available to undo.
      */
     public void showUndoUnavailable() {
-        printBox("There are no commands to undo.");
+        printBox("Nothing to undo yet, dude.");
     }
 
     /**
      * Displays a loading failure.
      */
     public void showLoadingError() {
-        printBox("Error: unable to load tasks from disk.",
+        printBox("I couldn't load your tasks, dude.",
                 "Starting with an empty task list.");
     }
 
@@ -251,7 +251,7 @@ public class Ui {
      * Displays a saving failure.
      */
     public void showSavingError() {
-        printBox("Error: unable to save tasks to disk.",
+        printBox("I couldn't save your tasks, dude.",
                 "The change remains in memory for this session.");
     }
 
