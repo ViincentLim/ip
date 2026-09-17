@@ -41,6 +41,18 @@ public class TaskListTest {
     }
 
     @Test
+    public void findMatches_preservesOriginalIndexes() {
+        TaskList tasks = new TaskList(List.of(
+                new Todo("buy milk"),
+                new Todo("read book"),
+                new Todo("return book")));
+
+        assertEquals(List.of(1, 2), tasks.findMatches("book").stream()
+                .map(TaskMatch::index)
+                .toList());
+    }
+
+    @Test
     public void findDuplicateIndexes_normalizesCaseAndWhitespace() {
         TaskList tasks = new TaskList(List.of(
                 new Todo("read book"),

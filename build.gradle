@@ -19,19 +19,31 @@ repositories {
     mavenCentral()
 }
 
+boolean isAppleSilicon = System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('mac')
+        && (System.getProperty('os.arch').toLowerCase(Locale.ROOT).contains('aarch64')
+        || System.getProperty('os.arch').toLowerCase(Locale.ROOT).contains('arm64'))
+
 dependencies {
     String javaFxVersion = '17.0.10'
-    String osName = System.getProperty('os.name').toLowerCase(Locale.ROOT)
-    String osArch = System.getProperty('os.arch').toLowerCase(Locale.ROOT)
-    String javaFxPlatform = osName.contains('mac')
-            ? (osArch.contains('aarch64') || osArch.contains('arm64') ? 'mac-aarch64' : 'mac')
-            : (osName.contains('win') ? 'win'
-            : (osArch.contains('aarch64') || osArch.contains('arm64') ? 'linux-aarch64' : 'linux'))
+    ['win', 'mac', 'linux'].each { platform ->
+        ['base', 'controls', 'fxml', 'graphics'].each { module ->
+            String dependency = "org.openjfx:javafx-${module}:${javaFxVersion}:${platform}"
+            if (platform == 'mac' && isAppleSilicon) {
+                // Supply the standard macOS classifier for compilation while
+                // keeping its Intel natives out of ARM runtime artifacts.
+                compileOnly(dependency)
+            } else {
+                implementation(dependency)
+            }
+        }
+    }
 
-    implementation("org.openjfx:javafx-base:${javaFxVersion}:${javaFxPlatform}")
-    implementation("org.openjfx:javafx-controls:${javaFxVersion}:${javaFxPlatform}")
-    implementation("org.openjfx:javafx-fxml:${javaFxVersion}:${javaFxPlatform}")
-    implementation("org.openjfx:javafx-graphics:${javaFxVersion}:${javaFxPlatform}")
+    // Keep the ARM native libraries available when developing on Apple Silicon.
+    if (isAppleSilicon) {
+        ['base', 'controls', 'fxml', 'graphics'].each { module ->
+            runtimeOnly("org.openjfx:javafx-${module}:${javaFxVersion}:mac-aarch64")
+        }
+    }
 
     String jUnitVersion = '5.14.4'
 
@@ -72,4 +84,11 @@ shadowJar {
 
 run {
     standardInput = System.in
+    if (isAppleSilicon) {
+        // The standard tutorial matrix remains declared above, but JavaFX must
+        // not load Intel macOS natives when this task runs on Apple Silicon.
+        classpath = sourceSets.main.runtimeClasspath.filter {
+            !it.name.endsWith('-mac.jar')
+        }
+    }
 }

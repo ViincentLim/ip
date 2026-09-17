@@ -14,6 +14,7 @@ import dude.exception.UsageException;
 import dude.task.Deadline;
 import dude.task.Event;
 import dude.task.Task;
+import dude.task.TaskMatch;
 import dude.task.TaskList;
 
 /**
@@ -171,11 +172,12 @@ public class Ui {
      *
      * @param matchingTasks Tasks matching the search keyword.
      */
-    public void showMatchingTasks(List<Task> matchingTasks) {
+    public void showMatchingTasks(List<TaskMatch> matchingTasks) {
         String[] taskLines = Stream.concat(
                         Stream.of("Here are the tasks I found, dude:"),
-                        IntStream.range(0, matchingTasks.size())
-                                .mapToObj(i -> String.format("%d.%s", i + 1, matchingTasks.get(i))))
+                        matchingTasks.stream()
+                                .map(match -> String.format("%d.%s", match.index() + 1,
+                                        match.task())))
                 .toArray(String[]::new);
         printBox(taskLines);
     }

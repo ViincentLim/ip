@@ -30,7 +30,7 @@ public class GuiController {
      * Creates a controller using the default storage location.
      */
     public GuiController() {
-        this(new DialogDuplicateResolutionHandler());
+        this(new Storage(), new DialogDuplicateResolutionHandler());
     }
 
     /**
@@ -39,7 +39,17 @@ public class GuiController {
      * @param resolutionHandler Handler used when adding a duplicate task.
      */
     public GuiController(DuplicateResolutionHandler resolutionHandler) {
-        storage = new Storage();
+        this(new Storage(), resolutionHandler);
+    }
+
+    /**
+     * Creates a controller with explicit storage and duplicate interaction dependencies.
+     *
+     * @param storage Storage used by commands.
+     * @param resolutionHandler Handler used when adding a duplicate task.
+     */
+    public GuiController(Storage storage, DuplicateResolutionHandler resolutionHandler) {
+        this.storage = storage;
         history = new UndoHistory();
         this.resolutionHandler = resolutionHandler;
         tasks = new TaskList();
@@ -71,9 +81,10 @@ public class GuiController {
      * Executes one existing DUDE command and captures its normal response.
      *
      * @param input Command entered in the GUI.
-     * @return Text response to display.
+     * @return Text response and whether the command failed validation.
      */
-    public String execute(String input) {
+    public GuiResponse execute(String input) {
+        boolean error = false;
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         try (PrintStream output = new PrintStream(buffer, true, StandardCharsets.UTF_8)) {
             Ui outputUi = new Ui(new Scanner(""), output);
@@ -82,9 +93,20 @@ public class GuiController {
                 command.execute(tasks, outputUi, storage, history, resolutionHandler);
             } catch (UsageException exception) {
                 outputUi.showError(exception);
+                error = true;
             }
         }
-        return buffer.toString(StandardCharsets.UTF_8) + System.lineSeparator();
+        return new GuiResponse(removeTerminalFormatting(buffer.toString(StandardCharsets.UTF_8)), error);
+    }
+
+    /**
+     * Removes terminal-only colour control sequences before output enters the GUI.
+     *
+     * @param output Captured console output.
+     * @return Text suitable for JavaFX labels.
+     */
+    private static String removeTerminalFormatting(String output) {
+        return output.replaceAll("\\u001B\\[[;\\d]*m", "");
     }
 
     /**

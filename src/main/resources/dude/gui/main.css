@@ -1,0 +1,56 @@
+.window {
+    -fx-font-size: 14px;
+    -fx-background-color: #f7f8fa;
+}
+
+.section-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #243b64;
+}
+
+.text-area,
+.text-field,
+.scroll-pane {
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+}
+
+.conversation {
+    -fx-padding: 10px;
+    -fx-background-color: white;
+}
+
+.dialog-box {
+    -fx-padding: 8px 12px;
+    -fx-background-radius: 8px;
+    -fx-max-width: 10000px;
+}
+
+.dialog-box .label {
+    -fx-wrap-text: true;
+}
+
+.dialog-box.user {
+    -fx-background-color: #dce8ff;
+}
+
+.dialog-box.app {
+    -fx-background-color: #e8f3e8;
+}
+
+.dialog-box.error {
+    -fx-background-color: #ffe4e4;
+    -fx-text-fill: #8b1e1e;
+}
+
+.command-bar {
+    -fx-padding: 4px 0 0 0;
+}
+
+.button:focused,
+.text-field:focused,
+.text-area:focused {
+    -fx-border-color: #3b5ea7;
+    -fx-border-width: 2px;
+}

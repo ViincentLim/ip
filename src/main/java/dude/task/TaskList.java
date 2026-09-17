@@ -112,10 +112,22 @@ public class TaskList {
      * @return Matching tasks in their original order.
      */
     public List<Task> find(String keyword) {
+        return findMatches(keyword).stream().map(TaskMatch::task).toList();
+    }
+
+    /**
+     * Returns matching tasks together with their original list positions.
+     *
+     * @param keyword Keyword to search for, case-insensitively.
+     * @return Matching tasks and their zero-based positions in original order.
+     */
+    public List<TaskMatch> findMatches(String keyword) {
         assert keyword != null;
         String normalizedKeyword = keyword.toLowerCase(Locale.ROOT);
-        return tasks.stream()
-                .filter(task -> task.getDescription().toLowerCase(Locale.ROOT).contains(normalizedKeyword))
+        return java.util.stream.IntStream.range(0, tasks.size())
+                .filter(index -> tasks.get(index).getDescription()
+                        .toLowerCase(Locale.ROOT).contains(normalizedKeyword))
+                .mapToObj(index -> new TaskMatch(index, tasks.get(index)))
                 .toList();
     }
 

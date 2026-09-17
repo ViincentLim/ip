@@ -33,6 +33,6 @@ public class FindCommand extends Command {
             throw new UsageException("find", "keyword", "<missing>",
                     "a non-blank keyword", CommandType.FIND.getUsageMessage(), "<keyword>");
         }
-        ui.showMatchingTasks(tasks.find(argument.trim()));
+        ui.showMatchingTasks(tasks.findMatches(argument.trim()));
     }
 }
