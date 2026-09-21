@@ -29,3 +29,11 @@ Bye. Hope to see you again soon!
 ```
 
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.
+
+## AI-assisted work
+
+Vincent Lim used OpenAI Codex extensively as an AI-assisted coding tool during
+this project. Codex assisted with implementation, refactoring, test writing,
+JavaFX UI work, build configuration, and code review. Vincent reviewed and
+validated the resulting work, including running the automated tests and build
+checks.

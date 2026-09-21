@@ -1,5 +1,6 @@
 package dude.task;
 
+import dude.exception.UsageDetails;
 import dude.exception.UsageException;
 
 /**
@@ -31,8 +32,8 @@ public class Todo extends Task {
 
     private static UsageException usageError(String actualValue, String expectedType,
             String usageToken) {
-        return new UsageException("todo", "task details", actualValue, expectedType,
-                "Usage: todo <task details>", usageToken);
+        return new UsageException(new UsageDetails("todo", "task details", actualValue,
+                expectedType, "Usage: todo <task details>", usageToken));
     }
 
     /**

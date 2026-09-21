@@ -1,13 +1,11 @@
 package dude.parser;
 
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
-import dude.command.UndoCommand;
-import dude.command.CommandType;
+import dude.command.core.CommandType;
 import dude.exception.UsageException;
 
 /**
@@ -15,8 +13,8 @@ import dude.exception.UsageException;
  */
 public class ParserTest {
     @Test
-    public void parseUndo_returnsUndoCommand() throws Exception {
-        assertInstanceOf(UndoCommand.class, Parser.parse("undo"));
+    public void parseUndo_returnsUndoRequest() throws Exception {
+        assertEquals(CommandType.UNDO, Parser.parse("undo").type());
     }
 
     @Test
@@ -39,6 +37,16 @@ public class ParserTest {
 
     @Test
     public void parseBlankInput_rejectsMissingCommand() {
-        assertThrows(UsageException.class, () -> Parser.parse("   "));
+        UsageException exception = assertThrows(UsageException.class, () -> Parser.parse("   "));
+        assertEquals("bye, list, find, on, mark, unmark, delete, todo, deadline, event, undo",
+                exception.getExpectedType());
+    }
+
+    @Test
+    public void parseUnknownCommand_reportsCompleteSupportedCommandSet() {
+        UsageException exception = assertThrows(UsageException.class,
+                () -> Parser.parse("unknown"));
+        assertEquals("bye, list, find, on, mark, unmark, delete, todo, deadline, event, undo",
+                exception.getExpectedType());
     }
 }

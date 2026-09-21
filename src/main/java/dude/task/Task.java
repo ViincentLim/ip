@@ -1,5 +1,7 @@
 package dude.task;
 
+import java.time.LocalDate;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,12 +12,12 @@ public class Task {
     /**
      * Text describing the work to be completed.
      */
-    protected String description;
+    private final String description;
 
     /**
      * Whether this task has been completed.
      */
-    protected boolean isDone;
+    private boolean isDone;
 
     /**
      * Creates an incomplete task with the supplied description.
@@ -23,8 +25,18 @@ public class Task {
      * @param description Text describing the task.
      */
     public Task(String description) {
-        this.description = description;
+        this.description = Objects.requireNonNull(description, "description");
         this.isDone = false;
+    }
+
+    /**
+     * Returns whether this task occurs on a date.
+     *
+     * @param targetDate Date to compare with.
+     * @return False for tasks without a date.
+     */
+    public boolean occursOn(LocalDate targetDate) {
+        return false;
     }
 
     /**

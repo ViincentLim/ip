@@ -1,7 +1,10 @@
 package dude.task;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.Objects;
 
+import dude.exception.UsageDetails;
 import dude.exception.UsageException;
 
 /**
@@ -14,7 +17,7 @@ public class Deadline extends Task {
     /**
      * Date or time by which this task should be completed.
      */
-    protected TaskDate by;
+    private final TaskDate by;
 
     /**
      * Creates an incomplete deadline task with its completion date or time.
@@ -24,7 +27,7 @@ public class Deadline extends Task {
      */
     public Deadline(String description, TaskDate by) {
         super(description);
-        this.by = by;
+        this.by = Objects.requireNonNull(by, "by");
     }
 
     /**
@@ -36,40 +39,50 @@ public class Deadline extends Task {
      */
     public static Deadline fromInput(String input) throws UsageException {
         if (input == null || input.isBlank() || input.trim().startsWith("/by")) {
-            throw usageError("task details", "<missing>", "non-empty text", "<task details>");
+            throw usageError(new UsageDetails("deadline", "task details", "<missing>",
+                    "non-empty text", USAGE_MESSAGE, "<task details>"));
         }
 
         String trimmed = input.trim();
         if (countStandaloneTokens(trimmed, "/by") != 1) {
-            throw usageError("by", trimmed, "exactly one /by delimiter", "/by");
+            throw usageError(new UsageDetails("deadline", "by", trimmed,
+                    "exactly one /by delimiter", USAGE_MESSAGE, "/by"));
         }
         String[] deadlineParts = splitAt(trimmed, "/by");
         if (deadlineParts == null) {
             String token = containsStandaloneToken(trimmed, "/by") ? "<date or time>" : "/by";
-            throw usageError("by", trimmed, "a date/time after /by", token);
+            throw usageError(new UsageDetails("deadline", "by", trimmed,
+                    "a date/time after /by", USAGE_MESSAGE, token));
         }
 
         try {
             return new Deadline(deadlineParts[0], TaskDate.parse(deadlineParts[1]));
         } catch (DateTimeParseException exception) {
-            throw usageError("by", deadlineParts[1], "yyyy-MM-dd or yyyy-MM-dd HHmm",
-                    "<yyyy-MM-dd [HHmm]>", exception);
+            throw usageError(new UsageDetails("deadline", "by", deadlineParts[1],
+                    "yyyy-MM-dd or yyyy-MM-dd HHmm", USAGE_MESSAGE,
+                    "<yyyy-MM-dd [HHmm]>"), exception);
         }
     }
 
-    private static UsageException usageError(String fieldName, String actualValue,
-            String expectedType, String usageToken) {
-        return new UsageException("deadline", fieldName, actualValue, expectedType,
-                USAGE_MESSAGE, usageToken);
+    /**
+     * Creates a usage exception without an underlying parsing cause.
+     *
+     * @param details Structured usage details.
+     * @return Usage exception.
+     */
+    private static UsageException usageError(UsageDetails details) {
+        return new UsageException(details);
     }
 
     /**
      * Returns a usage exception for an invalid date with its parsing cause.
+     *
+     * @param details Structured usage details.
+     * @param cause   Underlying parsing cause.
+     * @return Usage exception.
      */
-    private static UsageException usageError(String fieldName, String actualValue,
-            String expectedType, String usageToken, Throwable cause) {
-        return new UsageException("deadline", fieldName, actualValue, expectedType,
-                USAGE_MESSAGE, usageToken, cause);
+    private static UsageException usageError(UsageDetails details, Throwable cause) {
+        return new UsageException(details, cause);
     }
 
     /**
@@ -79,6 +92,17 @@ public class Deadline extends Task {
      */
     public TaskDate getBy() {
         return by;
+    }
+
+    /**
+     * Returns whether this deadline occurs on its deadline date.
+     *
+     * @param targetDate Date to compare with.
+     * @return True when the deadline is on the supplied date.
+     */
+    @Override
+    public boolean occursOn(LocalDate targetDate) {
+        return by.occursOn(targetDate);
     }
 
     /**

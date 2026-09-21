@@ -3,18 +3,25 @@ package dude.gui;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import dude.command.DuplicateResolution;
-import dude.command.DuplicateResolutionHandler;
-import dude.command.DuplicateTaskConflict;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceDialog;
 
+import dude.command.duplicate.DuplicateResolution;
+import dude.command.duplicate.DuplicateResolutionHandler;
+import dude.command.duplicate.DuplicateTaskConflict;
+
 /**
  * Collects duplicate-resolution choices through JavaFX modal dialogs.
  */
 public class DialogDuplicateResolutionHandler implements DuplicateResolutionHandler {
+    /**
+     * Creates a handler that uses JavaFX dialogs for duplicate resolution.
+     */
+    public DialogDuplicateResolutionHandler() {
+    }
+
     @Override
     public DuplicateResolution resolve(DuplicateTaskConflict conflict) {
         String matches = conflict.matches().stream()

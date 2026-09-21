@@ -13,6 +13,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import dude.task.Deadline;
 import dude.task.Event;
+import dude.task.EventPeriod;
 import dude.task.TaskList;
 import dude.task.Todo;
 
@@ -31,8 +32,8 @@ public class StorageTest {
         todo.markAsDone();
         TaskList original = new TaskList(List.of(todo,
                 new Deadline("return book", dude.task.TaskDate.parse("2019-12-02")),
-                new Event("project", dude.task.TaskDate.parse("2019-12-01"),
-                        dude.task.TaskDate.parse("2019-12-03"))));
+                new Event("project", new EventPeriod(dude.task.TaskDate.parse("2019-12-01"),
+                        dude.task.TaskDate.parse("2019-12-03")))));
 
         storage.saveTasks(original);
         TaskList loaded = storage.loadTasks();

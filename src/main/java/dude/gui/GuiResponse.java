@@ -5,6 +5,7 @@ package dude.gui;
  *
  * @param text Text to display in the conversation.
  * @param error Whether the response describes invalid user input.
+ * @param exit Whether the executed command requests that the GUI close.
  */
-public record GuiResponse(String text, boolean error) {
+public record GuiResponse(String text, boolean error, boolean exit) {
 }

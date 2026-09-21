@@ -1,20 +1,28 @@
 package dude.gui;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+
+import dude.command.core.CommandType;
+import dude.task.Task;
 
 /**
  * Coordinates the FXML controls in the main DUDE window.
  */
 public class MainWindowController {
     @FXML
-    private TextArea taskListArea;
+    private ListView<Task> taskListView;
     @FXML
     private ScrollPane conversationScroll;
     @FXML
@@ -23,8 +31,13 @@ public class MainWindowController {
     private TextField commandInput;
     @FXML
     private Button executeButton;
+    @FXML
+    private ListView<String> commandListView;
 
     private final GuiController controller;
+    private final List<String> commandUsages = Arrays.stream(CommandType.values())
+            .map(CommandType::getUsageMessage)
+            .toList();
 
     /**
      * Creates the controller used by FXML.
@@ -39,18 +52,43 @@ public class MainWindowController {
     @FXML
     private void initialize() {
         controller.loadTasks();
-        taskListArea.setText(controller.renderTasks());
+        taskListView.setCellFactory(view -> new TaskCell());
+        commandListView.setCellFactory(view -> new CommandCell());
+        refreshTaskList();
+        updateCommandSuggestions("");
         appendMessage("Welcome to DUDE. Enter a command below.", DialogBox.Kind.APP);
         if (!controller.getLoadMessage().isBlank()) {
             appendMessage(controller.getLoadMessage(), DialogBox.Kind.ERROR);
         }
         conversationContainer.heightProperty().addListener((observable, oldHeight, newHeight) ->
-                Platform.runLater(() -> conversationScroll.setVvalue(1.0)));
+                scrollToBottom());
+        conversationScroll.viewportBoundsProperty().addListener((observable, oldBounds, newBounds) ->
+                scrollToBottom());
+        commandInput.textProperty().addListener((observable, oldText, newText) ->
+                updateCommandSuggestions(newText));
+        commandInput.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.TAB
+                    && commandListView.getSelectionModel().getSelectedItem() != null) {
+                selectCommand();
+                event.consume();
+            } else if (event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.UP) {
+                focusCommandSuggestions(event.getCode());
+                event.consume();
+            }
+        });
+        commandListView.setOnMouseClicked(event -> selectCommand());
+        commandListView.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.TAB) {
+                selectCommand();
+                event.consume();
+            }
+        });
         commandInput.requestFocus();
     }
 
     /**
-     * Executes the command in the input field when the button or Enter is used.
+     * Executes the command in the input field when the button or Enter is used,
+     * closing the window when the command requests an exit.
      */
     @FXML
     private void executeCommand() {
@@ -60,10 +98,16 @@ public class MainWindowController {
         }
         appendMessage(command, DialogBox.Kind.USER);
         GuiResponse response = controller.execute(command);
-        appendMessage(response.text(), response.error() ? DialogBox.Kind.ERROR : DialogBox.Kind.APP);
-        taskListArea.setText(controller.renderTasks());
+        if (!response.text().isBlank()) {
+            appendMessage(response.text(), response.error() ? DialogBox.Kind.ERROR : DialogBox.Kind.APP);
+        }
+        refreshTaskList();
         commandInput.clear();
-        commandInput.requestFocus();
+        if (response.exit()) {
+            closeWindow();
+        } else {
+            commandInput.requestFocus();
+        }
     }
 
     /**
@@ -75,8 +119,80 @@ public class MainWindowController {
         stage.close();
     }
 
+    /**
+     * Appends one message to the conversation and scrolls to the latest message.
+     *
+     * @param message Message text.
+     * @param kind    Visual message category.
+     */
     private void appendMessage(String message, DialogBox.Kind kind) {
         conversationContainer.getChildren().add(new DialogBox(message, kind));
-        Platform.runLater(() -> conversationScroll.setVvalue(1.0));
+        scrollToBottom();
+    }
+
+    /**
+     * Refreshes the structured task list from the command controller.
+     */
+    private void refreshTaskList() {
+        taskListView.getItems().setAll(controller.getTasks());
+    }
+
+    /**
+     * Updates command suggestions according to the current input prefix.
+     *
+     * @param input Current command input.
+     */
+    private void updateCommandSuggestions(String input) {
+        String prefix = input == null ? "" : input.stripLeading().toLowerCase(Locale.ROOT);
+        if (prefix.contains(" ")) {
+            commandListView.getItems().setAll(commandUsages);
+            return;
+        }
+        commandListView.getItems().setAll(commandUsages.stream()
+                .filter(usage -> usage.substring("Usage: ".length()).toLowerCase(Locale.ROOT)
+                        .startsWith(prefix))
+                .toList());
+    }
+
+    /**
+     * Inserts the selected command suggestion into the input field.
+     */
+    private void selectCommand() {
+        String usage = commandListView.getSelectionModel().getSelectedItem();
+        if (usage == null) {
+            return;
+        }
+        String command = usage.substring("Usage: ".length()).split("\\s", 2)[0];
+        commandInput.setText(commandUsages.stream().anyMatch(item -> item.equals(usage)
+                && item.contains("<")) ? command + " " : command);
+        commandInput.requestFocus();
+        commandInput.positionCaret(commandInput.getText().length());
+    }
+
+    /**
+     * Moves focus to the first or last command suggestion.
+     *
+     * @param direction Key direction that triggered navigation.
+     */
+    private void focusCommandSuggestions(KeyCode direction) {
+        if (commandListView.getItems().isEmpty()) {
+            return;
+        }
+        commandListView.requestFocus();
+        int selectedIndex = direction == KeyCode.DOWN ? 0 : commandListView.getItems().size() - 1;
+        commandListView.getSelectionModel().select(selectedIndex);
+        commandListView.scrollTo(selectedIndex);
+    }
+
+    /**
+     * Scrolls the conversation pane to its latest content after layout.
+     */
+    private void scrollToBottom() {
+        Platform.runLater(() -> {
+            conversationScroll.applyCss();
+            conversationScroll.layout();
+            conversationScroll.setVvalue(conversationScroll.getVmax());
+            Platform.runLater(() -> conversationScroll.setVvalue(conversationScroll.getVmax()));
+        });
     }
 }

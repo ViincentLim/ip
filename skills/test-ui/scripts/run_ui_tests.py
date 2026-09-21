@@ -10,8 +10,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[3]
 PLAN = ROOT / "test/ui-test-plan.md"
-DATA_FILE = ROOT / "data/duke.jsonl"
-LEGACY_DATA_FILE = ROOT / "data/duke.txt"
+DATA_FILE = ROOT / "data/dude.jsonl"
+LEGACY_DATA_FILE = ROOT / "data/dude.txt"
 
 
 def read_block(text: str, heading: str, start: int, end: int) -> str:
@@ -84,12 +84,17 @@ def append_session(text: str, records: list[dict[str, str]]) -> None:
     marker = "\n## Latest test session\n"
     text = text.split(marker, 1)[0].rstrip() + marker
     for record in records:
+        recorded_output = "\n".join(
+            line.rstrip() for line in record["actual"].splitlines()
+        )
+        if record["actual"].endswith("\n"):
+            recorded_output += "\n"
         text += (
             f"\n### {record['name']}\n"
             "Console input:\n```text\n"
             f"{record['input']}"
             "```\nConsole output:\n```text\n"
-            f"{record['actual']}"
+            f"{recorded_output}"
             "```\n"
         )
     PLAN.write_text(text)

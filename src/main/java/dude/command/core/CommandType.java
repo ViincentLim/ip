@@ -1,4 +1,4 @@
-package dude.command;
+package dude.command.core;
 
 /**
  * Identifies the command words understood by DUDE.

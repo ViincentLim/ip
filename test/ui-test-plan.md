@@ -14,15 +14,29 @@ JUnit test command: `./gradlew test`
 CheckStyle validation command: `./gradlew check`
 
 GUI smoke test: launch the GUI, verify the task list loads, execute `todo read book`,
-`mark 1`, `find book`, `unmark 1`, `delete 1`, and close the window. Also verify that
-typed commands and application responses appear as distinct messages, invalid commands
-are visibly styled as errors, new messages auto-scroll into view, and the layout remains
-usable when the window is resized.
+`mark 1`, `find book`, `unmark 1`, `delete 1`, and exit with `bye` or the native window
+control. Also verify that
+typed commands and application responses appear as distinct messages, the Send button
+works alongside Enter, the command list filters by the typed command prefix and clicking
+a command fills the input field, and Up/Down plus Enter/Tab can navigate and select
+commands, with the selected row showing a `Tab to complete` hint on the right, without
+showing parameter hints in the input, and conversational errors show `Try: command ...`
+without a duplicated `Usage:` prefix, invalid commands are
+visibly styled as conversational errors, DUDE messages are left-aligned with a sunglasses
+profile icon and chat pointer, user messages are right-aligned with a chat pointer, new
+messages auto-scroll into view, task
+rows use structured UI elements in a left sidebar rather than a raw text list, selected
+task labels remain readable and retain their list numbers, CLI borders are absent from GUI bubbles, and the layout
+remains usable when the window is resized. Each task card places its type above its
+description, and the command palette keeps a constant height,
+`bye` closes the GUI after its farewell response, and cancelling a duplicate task does
+not create an empty response bubble.
 
 JUnit coverage includes date parsing and validation in `TaskDateTest`, case-insensitive
 ordered task search and original-index preservation in `TaskListTest`, GUI command
 execution and error handling in `GuiControllerTest`, storage persistence in
-`StorageTest`, plus session-based undo behavior in `UndoHistoryTest`.
+`StorageTest`, duplicate resolution in `DuplicateResolutionTest`, plus polymorphic
+command invocation and session-based undo behavior in `CommandQueueTest`.
 
 ## Test case: find keeps original task numbers
 

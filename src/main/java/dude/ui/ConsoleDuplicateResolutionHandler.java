@@ -1,19 +1,21 @@
-package dude.command;
+package dude.ui;
 
 import java.util.Locale;
 
-import dude.ui.Ui;
+import dude.command.duplicate.DuplicateResolution;
+import dude.command.duplicate.DuplicateResolutionHandler;
+import dude.command.duplicate.DuplicateTaskConflict;
 
 /**
- * Collects duplicate-resolution choices from the command-line UI.
+ * Collects duplicate-resolution choices from the console UI.
  */
-public class ConsoleDuplicateResolutionHandler implements DuplicateResolutionHandler {
+public final class ConsoleDuplicateResolutionHandler implements DuplicateResolutionHandler {
     private final Ui ui;
 
     /**
-     * Creates a console conflict handler.
+     * Creates a console duplicate-resolution handler.
      *
-     * @param ui UI used to display the conflict and read responses.
+     * @param ui Console UI used for prompts and input.
      */
     public ConsoleDuplicateResolutionHandler(Ui ui) {
         this.ui = ui;
@@ -42,6 +44,12 @@ public class ConsoleDuplicateResolutionHandler implements DuplicateResolutionHan
         }
     }
 
+    /**
+     * Resolves which matching task should be edited.
+     *
+     * @param conflict Duplicate task details.
+     * @return Edit or cancel resolution.
+     */
     private DuplicateResolution resolveEdit(DuplicateTaskConflict conflict) {
         if (conflict.matches().size() == 1) {
             return DuplicateResolution.edit(conflict.matches().get(0).index());
@@ -67,15 +75,33 @@ public class ConsoleDuplicateResolutionHandler implements DuplicateResolutionHan
         }
     }
 
+    /**
+     * Returns whether the input is an edit choice.
+     *
+     * @param choice Normalized user choice.
+     * @return True when the choice requests editing.
+     */
     private static boolean isEditChoice(String choice) {
         return "e".equals(choice) || "ed".equals(choice) || "edi".equals(choice)
                 || "edit".equals(choice);
     }
 
+    /**
+     * Returns whether the input is an add choice.
+     *
+     * @param choice Normalized user choice.
+     * @return True when the choice requests adding.
+     */
     private static boolean isAddChoice(String choice) {
         return "a".equals(choice) || "ad".equals(choice) || "add".equals(choice);
     }
 
+    /**
+     * Returns whether the input is a cancel choice.
+     *
+     * @param choice Normalized user choice.
+     * @return True when the choice requests cancellation.
+     */
     private static boolean isCancelChoice(String choice) {
         return "c".equals(choice) || "ca".equals(choice) || "can".equals(choice)
                 || "canc".equals(choice) || "cance".equals(choice) || "cancel".equals(choice);

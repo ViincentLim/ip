@@ -1,4 +1,4 @@
-package dude.command;
+package dude.command.duplicate;
 
 /**
  * Collects a user's choice for a duplicate-task conflict.

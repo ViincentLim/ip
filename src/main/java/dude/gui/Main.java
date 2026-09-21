@@ -1,8 +1,8 @@
 package dude.gui;
 
-import javafx.application.Application;
 import java.io.IOException;
 
+import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -12,6 +12,12 @@ import javafx.stage.Stage;
  * JavaFX window for the DUDE task manager.
  */
 public class Main extends Application {
+    /**
+     * Creates the JavaFX application.
+     */
+    public Main() {
+    }
+
     /**
      * Builds and displays the main application window.
      *

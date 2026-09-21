@@ -3,6 +3,8 @@ package dude.task;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -24,8 +26,7 @@ public class TaskList {
      * @param tasks Tasks to place in the list.
      */
     public TaskList(List<Task> tasks) {
-        assert tasks != null;
-        this.tasks = new ArrayList<>(tasks);
+        this.tasks = new ArrayList<>(Objects.requireNonNull(tasks, "tasks"));
     }
 
     /**
@@ -34,8 +35,7 @@ public class TaskList {
      * @param task Task to add.
      */
     public void add(Task task) {
-        assert task != null;
-        tasks.add(task);
+        tasks.add(Objects.requireNonNull(task, "task"));
     }
 
     /**
@@ -45,9 +45,8 @@ public class TaskList {
      * @param task  Task to insert.
      */
     public void insert(int index, Task task) {
-        assert task != null;
-        assert index >= 0 && index <= tasks.size();
-        tasks.add(index, task);
+        checkPositionIndex(index);
+        tasks.add(index, Objects.requireNonNull(task, "task"));
     }
 
     /**
@@ -58,7 +57,7 @@ public class TaskList {
      * @throws IndexOutOfBoundsException If the index is outside this list.
      */
     public Task get(int index) {
-        assert index >= 0 && index < tasks.size();
+        checkElementIndex(index);
         return tasks.get(index);
     }
 
@@ -70,7 +69,7 @@ public class TaskList {
      * @throws IndexOutOfBoundsException If the index is outside this list.
      */
     public Task remove(int index) {
-        assert index >= 0 && index < tasks.size();
+        checkElementIndex(index);
         return tasks.remove(index);
     }
 
@@ -82,9 +81,8 @@ public class TaskList {
      * @return Task that was replaced.
      */
     public Task replace(int index, Task task) {
-        assert task != null;
-        assert index >= 0 && index < tasks.size();
-        return tasks.set(index, task);
+        checkElementIndex(index);
+        return tasks.set(index, Objects.requireNonNull(task, "task"));
     }
 
     /**
@@ -122,9 +120,9 @@ public class TaskList {
      * @return Matching tasks and their zero-based positions in original order.
      */
     public List<TaskMatch> findMatches(String keyword) {
-        assert keyword != null;
+        Objects.requireNonNull(keyword, "keyword");
         String normalizedKeyword = keyword.toLowerCase(Locale.ROOT);
-        return java.util.stream.IntStream.range(0, tasks.size())
+        return IntStream.range(0, tasks.size())
                 .filter(index -> tasks.get(index).getDescription()
                         .toLowerCase(Locale.ROOT).contains(normalizedKeyword))
                 .mapToObj(index -> new TaskMatch(index, tasks.get(index)))
@@ -153,7 +151,7 @@ public class TaskList {
      * @return Trimmed, whitespace-collapsed, lower-case description.
      */
     public static String normalizeDescription(String description) {
-        assert description != null;
+        Objects.requireNonNull(description, "description");
         return description.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
     }
 
@@ -164,5 +162,27 @@ public class TaskList {
      */
     public List<Task> asList() {
         return List.copyOf(tasks);
+    }
+
+    /**
+     * Checks an index used to access an existing element.
+     *
+     * @param index Candidate element index.
+     */
+    private void checkElementIndex(int index) {
+        if (index < 0 || index >= tasks.size()) {
+            throw new IndexOutOfBoundsException("Task index: " + index);
+        }
+    }
+
+    /**
+     * Checks an index used to insert a new element.
+     *
+     * @param index Candidate insertion index.
+     */
+    private void checkPositionIndex(int index) {
+        if (index < 0 || index > tasks.size()) {
+            throw new IndexOutOfBoundsException("Task insertion index: " + index);
+        }
     }
 }

@@ -2,44 +2,47 @@ package dude;
 
 import java.io.IOException;
 
-import dude.command.Command;
-import dude.command.UndoHistory;
+import dude.command.core.Command;
+import dude.command.core.CommandCreator;
+import dude.command.core.CommandQueue;
+import dude.command.core.CommandResult;
+import dude.command.duplicate.DuplicateResolutionHandler;
+import dude.exception.CommandExecutionException;
 import dude.exception.UsageException;
 import dude.parser.Parser;
 import dude.storage.Storage;
-import dude.task.TaskList;
+import dude.task.TaskService;
+import dude.ui.ConsoleDuplicateResolutionHandler;
 import dude.ui.Ui;
 
 /**
- * Coordinates the DUDE application components.
+ * Coordinates DUDE's input, command, task, storage, and output components.
  */
 public class Dude {
-    private final Storage storage;
     private final Ui ui;
-    private final Parser parser;
-    private TaskList tasks;
-    private final UndoHistory history;
+    private final TaskService receiver;
+    private final CommandCreator commandCreator;
+    private final CommandQueue commandQueue;
 
     /**
      * Creates an application using standard input and the default storage.
      */
     public Dude() {
-        this(new Storage(), new Ui(), new Parser());
+        this(new Storage(), new Ui());
     }
 
     /**
-     * Creates an application with supplied collaborators.
+     * Creates an application with supplied storage and user-interface collaborators.
      *
-     * @param storage Persistence handler.
+     * @param storage Storage used to load and save tasks.
      * @param ui      User-interface handler.
-     * @param parser  Command parser.
      */
-    public Dude(Storage storage, Ui ui, Parser parser) {
-        this.storage = storage;
+    public Dude(Storage storage, Ui ui) {
         this.ui = ui;
-        this.parser = parser;
-        this.tasks = new TaskList();
-        this.history = new UndoHistory();
+        receiver = new TaskService(storage);
+        commandQueue = new CommandQueue();
+        DuplicateResolutionHandler resolutionHandler = new ConsoleDuplicateResolutionHandler(ui);
+        commandCreator = new CommandCreator(receiver, resolutionHandler, commandQueue);
     }
 
     /**
@@ -56,7 +59,7 @@ public class Dude {
      */
     public void run() {
         ui.showWelcome();
-        tasks = loadTasks();
+        loadTasks();
 
         boolean isExit = false;
         while (!isExit && ui.hasNextCommand()) {
@@ -66,11 +69,13 @@ public class Dude {
                     break;
                 }
                 ui.showLine();
-                Command command = Parser.parse(fullCommand);
-                command.execute(tasks, ui, storage, history);
-                isExit = command.isExit();
+                Command command = commandCreator.create(Parser.parse(fullCommand), ui);
+                CommandResult result = commandQueue.execute(command);
+                isExit = result.shouldExit();
             } catch (UsageException exception) {
                 ui.showError(exception);
+            } catch (CommandExecutionException exception) {
+                ui.showSavingError();
             } finally {
                 ui.showLine();
             }
@@ -78,14 +83,13 @@ public class Dude {
     }
 
     /**
-     * Loads persisted tasks, falling back to an empty list on failure.
+     * Loads persisted tasks, falling back to an empty receiver on failure.
      */
-    private TaskList loadTasks() {
+    private void loadTasks() {
         try {
-            return storage.loadTasks();
+            receiver.loadTasks();
         } catch (IOException exception) {
             ui.showLoadingError();
-            return new TaskList();
         }
     }
 }

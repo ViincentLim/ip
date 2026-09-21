@@ -5,38 +5,29 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
-import dude.command.CommandType;
-import dude.command.DuplicateTaskConflict;
+import dude.command.core.CommandType;
+import dude.command.duplicate.DuplicateTaskConflict;
 import dude.exception.UsageException;
-import dude.task.Deadline;
-import dude.task.Event;
 import dude.task.Task;
 import dude.task.TaskMatch;
-import dude.task.TaskList;
 
 /**
- * Handles console input and user-facing output.
+ * Coordinates console input and user-facing output adapters.
  */
 public class Ui {
-    private static final String ANSI_RED = "\u001B[31m";
-    private static final String ANSI_RESET = "\u001B[0m";
-    private final Scanner scanner;
-    private final PrintStream output;
-    private final String border;
-    private boolean isAtDivider;
+    private final ConsoleInput input;
+    private final ConsoleRenderer renderer;
 
     /**
-     * Creates a UI connected to standard input.
+     * Creates a UI connected to standard input and output.
      */
     public Ui() {
         this(new Scanner(System.in), System.out);
     }
 
     /**
-     * Creates a UI connected to a supplied scanner.
+     * Creates a UI connected to a supplied scanner and standard output.
      *
      * @param scanner Source of user commands.
      */
@@ -51,56 +42,15 @@ public class Ui {
      * @param output  Destination for user-facing output.
      */
     public Ui(Scanner scanner, PrintStream output) {
-        this.scanner = scanner;
-        this.output = Objects.requireNonNull(output);
-        this.border = "─".repeat(getTerminalWidth());
-    }
-
-    private static boolean occursOn(Task task, LocalDate date) {
-        if (task instanceof Deadline deadline) {
-            return deadline.getBy().occursOn(date);
-        }
-        return task instanceof Event event && event.occursOn(date);
-    }
-
-    private static int getTerminalWidth() {
-        try {
-            var console = System.console();
-            if (console != null) {
-                var method = console.getClass().getMethod("getWidth");
-                return (int) method.invoke(console);
-            }
-        } catch (Exception ignored) {
-        }
-        return 60;
-    }
-
-    private static String padRight(String text, int length) {
-        return text.length() >= length ? text : text + " ".repeat(length - text.length());
-    }
-
-    private static String formatActualValue(String actualValue) {
-        if (actualValue == null || actualValue.equals("<missing>")) {
-            return "<missing>";
-        }
-        return String.format("\"%s\"", actualValue);
+        input = new ConsoleInput(Objects.requireNonNull(scanner, "scanner"));
+        renderer = new ConsoleRenderer(Objects.requireNonNull(output, "output"));
     }
 
     /**
      * Displays the welcome banner and supported date formats.
      */
     public void showWelcome() {
-        String banner = "██████╗  ██╗   ██╗ ██████╗  ███████╗\n"
-                + "██╔══██╗ ██║   ██║ ██╔══██╗ ██╔════╝\n"
-                + "██║  ██║ ██║   ██║ ██║  ██║ █████╗\n"
-                + "██║  ██║ ██║   ██║ ██║  ██║ ██╔══╝\n"
-                + "██████╔╝ ╚██████╔╝╚██████╔╝ "
-                + "███████╗\n"
-                + "╚═════╝   ╚═════╝ ╚══════╝  ╚══════╝";
-        printBox(banner, "Hey! I'm DUDE, your dependable task buddy.",
-                "Dates can be represented in this format: yyyy-MM-dd.",
-                "To include a time, use this format: yyyy-MM-dd HHmm.",
-                "What can I help you with, dude?");
+        renderer.showWelcome();
     }
 
     /**
@@ -109,7 +59,7 @@ public class Ui {
      * @return True when input remains.
      */
     public boolean hasNextCommand() {
-        return scanner.hasNextLine();
+        return input.hasNextLine();
     }
 
     /**
@@ -118,13 +68,7 @@ public class Ui {
      * @return Raw command, or null at end of input.
      */
     public String readCommand() {
-        while (scanner.hasNextLine()) {
-            String input = scanner.nextLine();
-            if (!input.isBlank()) {
-                return input;
-            }
-        }
-        return null;
+        return input.readCommand();
     }
 
     /**
@@ -133,24 +77,21 @@ public class Ui {
      * @return Input line, or null at end of input.
      */
     public String readInputLine() {
-        return scanner.hasNextLine() ? scanner.nextLine() : null;
+        return input.readInputLine();
     }
 
     /**
      * Displays one divider line.
      */
     public void showLine() {
-        if (!isAtDivider) {
-            output.println(border);
-            isAtDivider = true;
-        }
+        renderer.showLine();
     }
 
     /**
      * Displays the standard goodbye message.
      */
     public void showGoodbye() {
-        printBox("Catch you later, dude!");
+        renderer.showGoodbye();
     }
 
     /**
@@ -158,13 +99,8 @@ public class Ui {
      *
      * @param tasks Application task list.
      */
-    public void showTaskList(TaskList tasks) {
-        String[] taskLines = Stream.concat(
-                        Stream.of("Here's your task list, dude:"),
-                        IntStream.range(0, tasks.size())
-                                .mapToObj(i -> String.format("%d.%s", i + 1, tasks.get(i))))
-                .toArray(String[]::new);
-        printBox(taskLines);
+    public void showTaskList(List<Task> tasks) {
+        renderer.showTaskList(tasks);
     }
 
     /**
@@ -173,13 +109,7 @@ public class Ui {
      * @param matchingTasks Tasks matching the search keyword.
      */
     public void showMatchingTasks(List<TaskMatch> matchingTasks) {
-        String[] taskLines = Stream.concat(
-                        Stream.of("Here are the tasks I found, dude:"),
-                        matchingTasks.stream()
-                                .map(match -> String.format("%d.%s", match.index() + 1,
-                                        match.task())))
-                .toArray(String[]::new);
-        printBox(taskLines);
+        renderer.showMatchingTasks(matchingTasks);
     }
 
     /**
@@ -188,14 +118,8 @@ public class Ui {
      * @param tasks Application task list.
      * @param date  Date to match.
      */
-    public void showTasksOnDate(TaskList tasks, LocalDate date) {
-        String[] taskLines = Stream.concat(
-                        Stream.of(String.format("Here's what you have on %s:", date)),
-                        IntStream.range(0, tasks.size())
-                                .filter(index -> occursOn(tasks.get(index), date))
-                                .mapToObj(index -> String.format("%d.%s", index + 1, tasks.get(index))))
-                .toArray(String[]::new);
-        printBox(taskLines);
+    public void showTasksOnDate(List<Task> tasks, LocalDate date) {
+        renderer.showTasksOnDate(tasks, date);
     }
 
     /**
@@ -205,9 +129,7 @@ public class Ui {
      * @param taskCount Number of tasks after the addition.
      */
     public void showAddedTask(Task task, int taskCount) {
-        printBox("Nice, dude — I've added this task:",
-                "  " + task,
-                String.format("Now you have %d tasks in the list.", taskCount));
+        renderer.showAddedTask(task, taskCount);
     }
 
     /**
@@ -217,10 +139,7 @@ public class Ui {
      * @param commandType Mark or unmark command type.
      */
     public void showUpdatedTask(Task task, CommandType commandType) {
-        String message = commandType == CommandType.MARK
-                ? "Solid work, dude — this task is done:"
-                : "No worries, dude — this task is back in progress:";
-        printBox(message, "  " + task);
+        renderer.showUpdatedTask(task, commandType);
     }
 
     /**
@@ -229,7 +148,7 @@ public class Ui {
      * @param task Replacement task.
      */
     public void showEditedTask(Task task) {
-        printBox("Updated, dude — I've replaced the matching task:", "  " + task);
+        renderer.showEditedTask(task);
     }
 
     /**
@@ -239,9 +158,7 @@ public class Ui {
      * @param taskCount Number of tasks after deletion.
      */
     public void showDeletedTask(Task task, int taskCount) {
-        printBox("All right, dude — I've removed this task:",
-                "  " + task,
-                String.format("Now you have %d tasks in the list.", taskCount));
+        renderer.showDeletedTask(task, taskCount);
     }
 
     /**
@@ -250,30 +167,28 @@ public class Ui {
      * @param description Description of the reversed command.
      */
     public void showUndo(String description) {
-        printBox("Done, dude — I rolled back:", "  " + description + ".");
+        renderer.showUndo(description);
     }
 
     /**
      * Displays that there are no commands available to undo.
      */
     public void showUndoUnavailable() {
-        printBox("Nothing to undo yet, dude.");
+        renderer.showUndoUnavailable();
     }
 
     /**
      * Displays a loading failure.
      */
     public void showLoadingError() {
-        printBox("I couldn't load your tasks, dude.",
-                "Starting with an empty task list.");
+        renderer.showLoadingError();
     }
 
     /**
      * Displays a saving failure.
      */
     public void showSavingError() {
-        printBox("I couldn't save your tasks, dude.",
-                "The change remains in memory for this session.");
+        renderer.showSavingError();
     }
 
     /**
@@ -282,40 +197,35 @@ public class Ui {
      * @param conflict Duplicate task details.
      */
     public void showDuplicateConflict(DuplicateTaskConflict conflict) {
-        String[] lines = Stream.concat(
-                        Stream.of("I found a task with the same description, dude:"),
-                        conflict.matches().stream().map(match -> String.format("%d.%s",
-                                match.index() + 1, match.task())))
-                .toArray(String[]::new);
-        printBox(lines);
+        renderer.showDuplicateConflict(conflict);
     }
 
     /**
      * Displays the duplicate-resolution choices.
      */
     public void showDuplicatePrompt() {
-        printBox("Edit [E], add [A], or cancel [C]?");
+        renderer.showDuplicatePrompt();
     }
 
     /**
      * Displays the prompt used to choose among multiple duplicate tasks.
      */
     public void showDuplicateSelection() {
-        printBox("Which matching task number should I edit?");
+        renderer.showDuplicateSelection();
     }
 
     /**
      * Displays feedback for an invalid duplicate-resolution choice.
      */
     public void showInvalidDuplicateChoice() {
-        printBox("Please choose Edit, Add, or Cancel, dude.");
+        renderer.showInvalidDuplicateChoice();
     }
 
     /**
      * Displays feedback for an invalid duplicate-task selection.
      */
     public void showInvalidDuplicateSelection() {
-        printBox("Please choose one of the matching task numbers, dude.");
+        renderer.showInvalidDuplicateSelection();
     }
 
     /**
@@ -324,28 +234,6 @@ public class Ui {
      * @param exception Error to display.
      */
     public void showError(UsageException exception) {
-        String usage = exception.getUsageMessage().replace(
-                exception.getUsageToken(), ANSI_RED + exception.getUsageToken() + ANSI_RESET);
-        String actualValue = formatActualValue(exception.getActualValue());
-        if ("command".equals(exception.getFieldName())) {
-            printBox(String.format("Error: invalid command %s.", actualValue),
-                    String.format("Expected: %s.", exception.getExpectedType()), usage);
-            return;
-        }
-        printBox(String.format("Error: invalid %s %s for %s.", exception.getFieldName(),
-                        actualValue, exception.getAction()),
-                String.format("Expected: %s.", exception.getExpectedType()), usage);
-    }
-
-    private void printBox(String... lines) {
-        output.println(border);
-        isAtDivider = true;
-        for (String line : lines) {
-            for (String part : line.split("\n")) {
-                output.println(padRight(part, border.length()));
-            }
-        }
-        isAtDivider = false;
-        showLine();
+        renderer.showError(exception);
     }
 }

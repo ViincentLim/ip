@@ -2,96 +2,46 @@ package dude.parser;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
-import dude.command.AddCommand;
-import dude.command.Command;
-import dude.command.CommandType;
-import dude.command.DeleteCommand;
-import dude.command.ExitCommand;
-import dude.command.FindCommand;
-import dude.command.ListCommand;
-import dude.command.MarkCommand;
-import dude.command.OnCommand;
-import dude.command.UnmarkCommand;
-import dude.command.UndoCommand;
+import dude.command.core.CommandType;
+import dude.exception.UsageDetails;
 import dude.exception.UsageException;
 
 /**
- * Converts raw user input into executable command objects.
+ * Parses raw command input without constructing or executing commands.
  */
-public class Parser {
-    private static final String COMMAND_USAGE = "Usage: todo <task details> | deadline <description> /by"
-            + " <yyyy-MM-dd [HHmm]> | event <description> /from <yyyy-MM-dd [HHmm]>"
-            + " /to <yyyy-MM-dd [HHmm]> | on <yyyy-MM-dd>";
+public final class Parser {
+    private static final String SUPPORTED_COMMANDS = Arrays.stream(CommandType.values())
+            .map(CommandType::getWord)
+            .collect(Collectors.joining(", "));
+    private static final String COMMAND_USAGE = Arrays.stream(CommandType.values())
+            .map(CommandType::getUsageMessage)
+            .collect(Collectors.joining(" | "));
 
-    /**
-     * Creates a parser.
-     */
-    public Parser() {
+    private Parser() {
     }
 
     /**
-     * Parses a full command line.
+     * Parses a full command line into a syntactic request.
      *
      * @param input Raw command line.
-     * @return Executable command.
-     * @throws UsageException If the command word is unknown.
+     * @return Parsed command request.
+     * @throws UsageException If the command word or no-argument contract is invalid.
      */
-    public static Command parse(String input) throws UsageException {
+    public static CommandRequest parse(String input) throws UsageException {
         if (input == null || input.isBlank()) {
-            throw new UsageException("", "command", "<missing>",
-                    "todo, deadline, event, on, or find", COMMAND_USAGE, "<task type>");
+            throw new UsageException(new UsageDetails("", "command", "<missing>",
+                    SUPPORTED_COMMANDS, COMMAND_USAGE, "<task type>"));
         }
         String[] commandParts = input.trim().split("\\s+", 2);
-        String action = commandParts[0];
+        CommandType commandType = parseType(commandParts[0]);
         String argument = commandParts.length > 1 ? commandParts[1] : null;
-
-        CommandType commandType = parseType(action);
-        return switch (commandType) {
-            case BYE -> {
-                requireNoArgument(commandType, argument);
-                yield new ExitCommand(null);
-            }
-            case LIST -> {
-                requireNoArgument(commandType, argument);
-                yield new ListCommand(null);
-            }
-            case FIND -> new FindCommand(argument);
-            case ON -> new OnCommand(argument);
-            case MARK -> new MarkCommand(argument);
-            case UNMARK -> new UnmarkCommand(argument);
-            case DELETE -> new DeleteCommand(argument);
-            case TODO, DEADLINE, EVENT -> new AddCommand(commandType, argument);
-            case UNDO -> {
-                requireNoArgument(commandType, argument);
-                yield new UndoCommand(null);
-            }
-        };
-    }
-
-    /**
-     * Rejects arguments for commands that intentionally take none.
-     *
-     * @param commandType Command being parsed.
-     * @param argument   Raw argument, if supplied.
-     * @throws UsageException If an argument was supplied.
-     */
-    private static void requireNoArgument(CommandType commandType, String argument)
-            throws UsageException {
-        if (argument != null && !argument.isBlank()) {
-            throw new UsageException(commandType.getWord(), "argument", argument,
-                    "no arguments", commandType.getUsageMessage(), commandType.getWord());
+        if (requiresNoArgument(commandType)) {
+            requireNoArgument(commandType, argument);
         }
-    }
-
-    private static CommandType parseType(String action) throws UsageException {
-        for (CommandType commandType : CommandType.values()) {
-            if (commandType.getWord().equals(action)) {
-                return commandType;
-            }
-        }
-        throw new UsageException(action, "command", action,
-                "todo, deadline, event, on, or find", COMMAND_USAGE, "<task type>");
+        return new CommandRequest(commandType, argument);
     }
 
     /**
@@ -101,26 +51,25 @@ public class Parser {
      * @param argument    Raw task-number argument.
      * @param taskCount   Number of available tasks.
      * @return Zero-based task index.
-     * @throws UsageException If the argument is not a valid task number.
+     * @throws UsageException If the argument is invalid.
      */
     public static int parseTaskIndex(CommandType commandType, String argument, int taskCount)
             throws UsageException {
         if (argument == null || argument.isBlank()) {
-            throw usageError(commandType, "task number", "<missing>", "an integer", "<task number>");
+            throw usageError(new UsageRequest(commandType, "task number", "<missing>",
+                    "an integer", "<task number>"));
         }
-
         int taskNumber;
         try {
             taskNumber = Integer.parseInt(argument);
         } catch (NumberFormatException exception) {
-            throw usageError(commandType, "task number", argument,
-                    "an integer", "<task number>", exception);
+            throw usageError(new UsageRequest(commandType, "task number", argument,
+                    "an integer", "<task number>"), exception);
         }
-
         int taskIndex = taskNumber - 1;
         if (taskIndex < 0 || taskIndex >= taskCount) {
-            throw usageError(commandType, "task number", argument,
-                    "an existing task number", "<task number>");
+            throw usageError(new UsageRequest(commandType, "task number", argument,
+                    "an existing task number", "<task number>"));
         }
         return taskIndex;
     }
@@ -130,29 +79,104 @@ public class Parser {
      *
      * @param argument Raw date argument.
      * @return Parsed date.
-     * @throws UsageException If the argument is not a valid date.
+     * @throws UsageException If the argument is invalid.
      */
     public static LocalDate parseDate(String argument) throws UsageException {
         if (argument == null || argument.isBlank()) {
-            throw usageError(CommandType.ON, "date", "<missing>", "yyyy-MM-dd", "<yyyy-MM-dd>");
+            throw usageError(new UsageRequest(CommandType.ON, "date", "<missing>",
+                    "yyyy-MM-dd", "<yyyy-MM-dd>"));
         }
         try {
             return dude.task.TaskDate.parseDate(argument);
         } catch (DateTimeParseException exception) {
-            throw usageError(CommandType.ON, "date", argument,
-                    "yyyy-MM-dd", "<yyyy-MM-dd>", exception);
+            throw usageError(new UsageRequest(CommandType.ON, "date", argument,
+                    "yyyy-MM-dd", "<yyyy-MM-dd>"), exception);
         }
     }
 
-    private static UsageException usageError(CommandType commandType, String fieldName,
-            String actualValue, String expectedType, String usageToken) {
-        return new UsageException(commandType.getWord(), fieldName, actualValue,
-                expectedType, commandType.getUsageMessage(), usageToken);
+    /**
+     * Returns whether a command accepts no argument.
+     *
+     * @param commandType Command type.
+     * @return True for commands that reject arguments.
+     */
+    private static boolean requiresNoArgument(CommandType commandType) {
+        return commandType == CommandType.BYE || commandType == CommandType.LIST
+                || commandType == CommandType.UNDO;
     }
 
-    private static UsageException usageError(CommandType commandType, String fieldName,
-            String actualValue, String expectedType, String usageToken, Throwable cause) {
-        return new UsageException(commandType.getWord(), fieldName, actualValue,
-                expectedType, commandType.getUsageMessage(), usageToken, cause);
+    /**
+     * Parses a command word.
+     *
+     * @param action Command word.
+     * @return Matching command type.
+     * @throws UsageException If the command word is unknown.
+     */
+    private static CommandType parseType(String action) throws UsageException {
+        for (CommandType commandType : CommandType.values()) {
+            if (commandType.getWord().equals(action)) {
+                return commandType;
+            }
+        }
+        throw new UsageException(new UsageDetails(action, "command", action,
+                SUPPORTED_COMMANDS, COMMAND_USAGE, "<task type>"));
+    }
+
+    /**
+     * Rejects arguments for a command that intentionally takes none.
+     *
+     * @param commandType Command being parsed.
+     * @param argument   Raw argument, if supplied.
+     * @throws UsageException If an argument was supplied.
+     */
+    private static void requireNoArgument(CommandType commandType, String argument)
+            throws UsageException {
+        if (argument != null && !argument.isBlank()) {
+            throw new UsageException(new UsageDetails(commandType.getWord(), "argument", argument,
+                    "no arguments", commandType.getUsageMessage(), commandType.getWord()));
+        }
+    }
+
+    /**
+     * Creates a usage exception without a parsing cause.
+     *
+     * @param request Usage-error context.
+     * @return Structured usage exception.
+     */
+    private static UsageException usageError(UsageRequest request) {
+        return new UsageException(request.toDetails());
+    }
+
+    /**
+     * Creates a usage exception with a parsing cause.
+     *
+     * @param request Usage-error context.
+     * @param cause        Parsing cause.
+     * @return Structured usage exception.
+     */
+    private static UsageException usageError(UsageRequest request, Throwable cause) {
+        return new UsageException(request.toDetails(), cause);
+    }
+
+    /**
+     * Groups the context needed to create one structured usage error.
+     *
+     * @param commandType  Command type.
+     * @param fieldName    Invalid field.
+     * @param actualValue  Supplied value.
+     * @param expectedType Expected format.
+     * @param usageToken   Usage token to highlight.
+     */
+    private record UsageRequest(CommandType commandType, String fieldName, String actualValue,
+            String expectedType, String usageToken) {
+        /**
+         * Converts this request into the shared structured usage-details value.
+         *
+         * @return Structured usage details.
+         */
+        private UsageDetails toDetails() {
+            return new UsageDetails(commandType.getWord(), fieldName, actualValue,
+                    expectedType, commandType.getUsageMessage(), usageToken);
+        }
     }
 }

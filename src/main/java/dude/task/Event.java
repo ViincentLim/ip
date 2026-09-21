@@ -2,7 +2,9 @@ package dude.task;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.Objects;
 
+import dude.exception.UsageDetails;
 import dude.exception.UsageException;
 
 /**
@@ -15,27 +17,17 @@ public class Event extends Task {
     /**
      * Date or time when this event starts.
      */
-    protected TaskDate from;
-
-    /**
-     * Date or time when this event ends.
-     */
-    protected TaskDate to;
+    private final EventPeriod period;
 
     /**
      * Creates an incomplete event task with its start and end dates or times.
      *
      * @param description Text describing the event.
-     * @param from        Date or time when the event starts.
-     * @param to          Date or time when the event ends.
+     * @param period      Date and time range of the event.
      */
-    public Event(String description, TaskDate from, TaskDate to) {
+    public Event(String description, EventPeriod period) {
         super(description);
-        if (!to.effectiveDateTime().isAfter(from.effectiveDateTime())) {
-            throw new IllegalArgumentException("Event end precedes event start");
-        }
-        this.from = from;
-        this.to = to;
+        this.period = Objects.requireNonNull(period, "period");
     }
 
     /**
@@ -46,65 +38,122 @@ public class Event extends Task {
      * @throws UsageException If the input does not contain valid event details.
      */
     public static Event fromInput(String input) throws UsageException {
+        String trimmed = validateInput(input);
+        String[] eventParts = splitEventDescription(trimmed);
+        String[] timeParts = splitEventTimes(eventParts[1]);
+        return new Event(eventParts[0], parsePeriod(timeParts));
+    }
+
+    /**
+     * Validates and trims raw event input.
+     *
+     * @param input Raw event input.
+     * @return Trimmed event input.
+     * @throws UsageException If the input is missing.
+     */
+    private static String validateInput(String input) throws UsageException {
         if (input == null || input.isBlank() || input.trim().startsWith("/from")) {
-            throw usageError("task details", "<missing>", "non-empty text", "<task details>");
+            throw usageError(new UsageDetails("event", "task details", "<missing>",
+                    "non-empty text", USAGE_MESSAGE, "<task details>"));
         }
+        return input.trim();
+    }
 
-        String trimmed = input.trim();
-        if (countStandaloneTokens(trimmed, "/from") != 1
-                || countStandaloneTokens(trimmed, "/to") != 1) {
-            throw usageError("details", trimmed, "exactly one /from and one /to delimiter",
-                    "/from");
+    /**
+     * Splits the description from the event's date range.
+     *
+     * @param input Trimmed event input.
+     * @return Description and date-range parts.
+     * @throws UsageException If the /from delimiter is invalid.
+     */
+    private static String[] splitEventDescription(String input) throws UsageException {
+        if (countStandaloneTokens(input, "/from") != 1
+                || countStandaloneTokens(input, "/to") != 1) {
+            throw usageError(new UsageDetails("event", "details", input,
+                    "exactly one /from and one /to delimiter", USAGE_MESSAGE, "/from"));
         }
-        String[] eventParts = splitAt(trimmed, "/from");
+        String[] eventParts = splitAt(input, "/from");
         if (eventParts == null) {
-            String token = containsStandaloneToken(trimmed, "/from") ? "<description>" : "/from";
-            throw usageError("from", trimmed, "a start date/time after /from", token);
+            String token = containsStandaloneToken(input, "/from") ? "<description>" : "/from";
+            throw usageError(new UsageDetails("event", "from", input,
+                    "a start date/time after /from", USAGE_MESSAGE, token));
         }
+        return eventParts;
+    }
 
-        String[] timeParts = splitAt(eventParts[1], "/to");
+    /**
+     * Splits an event date range into its start and end values.
+     *
+     * @param dateRange Event date-range input.
+     * @return Start and end date strings.
+     * @throws UsageException If the /to delimiter is invalid.
+     */
+    private static String[] splitEventTimes(String dateRange) throws UsageException {
+        String[] timeParts = splitAt(dateRange, "/to");
         if (timeParts == null) {
-            String token = containsStandaloneToken(eventParts[1], "/to") ? "<end>" : "/to";
-            throw usageError("to", eventParts[1], "an end date/time after /to", token);
+            String token = containsStandaloneToken(dateRange, "/to") ? "<end>" : "/to";
+            throw usageError(new UsageDetails("event", "to", dateRange,
+                    "an end date/time after /to", USAGE_MESSAGE, token));
         }
+        return timeParts;
+    }
 
-        TaskDate from;
+    /**
+     * Parses and validates the endpoints of an event.
+     *
+     * @param timeParts Start and end date strings.
+     * @return Validated event period.
+     * @throws UsageException If either date or the period is invalid.
+     */
+    private static EventPeriod parsePeriod(String[] timeParts) throws UsageException {
+        TaskDate from = parseDate(timeParts[0], "from");
+        TaskDate to = parseDate(timeParts[1], "to");
         try {
-            from = TaskDate.parse(timeParts[0]);
-        } catch (DateTimeParseException exception) {
-            throw usageError("from", timeParts[0],
-                    "yyyy-MM-dd or yyyy-MM-dd HHmm", "<yyyy-MM-dd [HHmm]>", exception);
-        }
-
-        TaskDate to;
-        try {
-            to = TaskDate.parse(timeParts[1]);
-        } catch (DateTimeParseException exception) {
-            throw usageError("to", timeParts[1],
-                    "yyyy-MM-dd or yyyy-MM-dd HHmm", "<yyyy-MM-dd [HHmm]>", exception);
-        }
-
-        try {
-            return new Event(eventParts[0], from, to);
+            return new EventPeriod(from, to);
         } catch (IllegalArgumentException exception) {
-            throw usageError("to", timeParts[1], "a date after the start date",
-                    "<yyyy-MM-dd [HHmm]>", exception);
+            throw usageError(new UsageDetails("event", "to", timeParts[1],
+                    "a date after the start date", USAGE_MESSAGE,
+                    "<yyyy-MM-dd [HHmm]>"), exception);
         }
     }
 
-    private static UsageException usageError(String fieldName, String actualValue,
-            String expectedType, String usageToken) {
-        return new UsageException("event", fieldName,
-                actualValue, expectedType, USAGE_MESSAGE, usageToken);
+    /**
+     * Parses one event endpoint.
+     *
+     * @param value Endpoint date string.
+     * @param field Endpoint field name.
+     * @return Parsed endpoint.
+     * @throws UsageException If the endpoint is invalid.
+     */
+    private static TaskDate parseDate(String value, String field) throws UsageException {
+        try {
+            return TaskDate.parse(value);
+        } catch (DateTimeParseException exception) {
+            throw usageError(new UsageDetails("event", field, value,
+                    "yyyy-MM-dd or yyyy-MM-dd HHmm", USAGE_MESSAGE,
+                    "<yyyy-MM-dd [HHmm]>"), exception);
+        }
+    }
+
+    /**
+     * Creates a usage exception without an underlying parsing cause.
+     *
+     * @param details Structured usage details.
+     * @return Usage exception.
+     */
+    private static UsageException usageError(UsageDetails details) {
+        return new UsageException(details);
     }
 
     /**
      * Returns a usage exception for an invalid date with its parsing cause.
+     *
+     * @param details Structured usage details.
+     * @param cause   Underlying parsing cause.
+     * @return Usage exception.
      */
-    private static UsageException usageError(String fieldName, String actualValue,
-            String expectedType, String usageToken, Throwable cause) {
-        return new UsageException("event", fieldName,
-                actualValue, expectedType, USAGE_MESSAGE, usageToken, cause);
+    private static UsageException usageError(UsageDetails details, Throwable cause) {
+        return new UsageException(details, cause);
     }
 
     /**
@@ -113,7 +162,7 @@ public class Event extends Task {
      * @return Event start date or time.
      */
     public TaskDate getFrom() {
-        return from;
+        return period.from();
     }
 
     /**
@@ -122,7 +171,7 @@ public class Event extends Task {
      * @return Event end date or time.
      */
     public TaskDate getTo() {
-        return to;
+        return period.to();
     }
 
     /**
@@ -131,8 +180,9 @@ public class Event extends Task {
      * @param targetDate Date to compare with.
      * @return True when the event includes the target date.
      */
+    @Override
     public boolean occursOn(LocalDate targetDate) {
-        return !targetDate.isBefore(from.date()) && !targetDate.isAfter(to.date());
+        return !targetDate.isBefore(getFrom().date()) && !targetDate.isAfter(getTo().date());
     }
 
     /**
@@ -142,6 +192,6 @@ public class Event extends Task {
      */
     @Override
     public String toString() {
-        return String.format("[E]%s (from: %s to: %s)", super.toString(), from, to);
+        return String.format("[E]%s (from: %s to: %s)", super.toString(), getFrom(), getTo());
     }
 }

@@ -1,129 +1,98 @@
 package dude.exception;
 
+import java.util.Objects;
+
 /**
- * Describes an invalid command field and the format expected by the command.
+ * Describes invalid command input and the format expected by the command.
  */
-public class UsageException extends Exception {
-    /**
-     * Command that received invalid input.
-     */
-    private final String action;
+public final class UsageException extends Exception {
+    private static final long serialVersionUID = 1L;
 
-    /**
-     * Name of the invalid command field.
-     */
-    private final String fieldName;
-
-    /**
-     * Value supplied for the invalid field.
-     */
-    private final String actualValue;
-
-    /**
-     * Type or format expected for the invalid field.
-     */
-    private final String expectedType;
-
-    /**
-     * Usage message describing the valid command format.
-     */
-    private final String usageMessage;
-
-    /**
-     * Token in the usage message that should be highlighted.
-     */
-    private final String usageToken;
+    /** Structured information used to render this exception. */
+    private final UsageDetails details;
 
     /**
      * Creates an exception describing invalid command input.
      *
-     * @param action       Command that received invalid input.
-     * @param fieldName    Name of the invalid command field.
-     * @param actualValue  Value supplied for the invalid field.
-     * @param expectedType Type or format expected for the invalid field.
-     * @param usageMessage Usage message describing the valid command format.
-     * @param usageToken   Token in the usage message to highlight.
+     * @param details Structured details about the invalid input.
      */
-    public UsageException(String action, String fieldName, String actualValue,
-            String expectedType, String usageMessage, String usageToken) {
-        this(action, fieldName, actualValue, expectedType, usageMessage, usageToken, null);
+    public UsageException(UsageDetails details) {
+        this(details, null);
     }
 
     /**
      * Creates an exception describing invalid command input with its cause.
      *
-     * @param action       Command that received invalid input.
-     * @param fieldName    Name of the invalid command field.
-     * @param actualValue  Value supplied for the invalid field.
-     * @param expectedType Type or format expected for the invalid field.
-     * @param usageMessage Usage message describing the valid command format.
-     * @param usageToken   Token in the usage message to highlight.
-     * @param cause        Exception that caused this usage error.
+     * @param details Structured details about the invalid input.
+     * @param cause   Underlying parsing or validation failure.
      */
-    public UsageException(String action, String fieldName, String actualValue,
-            String expectedType, String usageMessage, String usageToken,
-            Throwable cause) {
-        super(String.format("Invalid %s for %s: %s; expected %s",
-                fieldName, action, actualValue, expectedType), cause);
-        this.action = action;
-        this.fieldName = fieldName;
-        this.actualValue = actualValue;
-        this.expectedType = expectedType;
-        this.usageMessage = usageMessage;
-        this.usageToken = usageToken;
+    public UsageException(UsageDetails details, Throwable cause) {
+        super(formatMessage(Objects.requireNonNull(details)), cause);
+        this.details = details;
     }
 
     /**
      * Returns the command that received invalid input.
      *
-     * @return Command that received invalid input.
+     * @return Invalid command action.
      */
     public String getAction() {
-        return action;
+        return details.action();
     }
 
     /**
      * Returns the name of the invalid command field.
      *
-     * @return Name of the invalid command field.
+     * @return Invalid field name.
      */
     public String getFieldName() {
-        return fieldName;
+        return details.fieldName();
     }
 
     /**
-     * Returns the value supplied for the invalid field.
+     * Returns the supplied value.
      *
-     * @return Value supplied for the invalid field.
+     * @return Supplied value.
      */
     public String getActualValue() {
-        return actualValue;
+        return details.actualValue();
     }
 
     /**
-     * Returns the type or format expected for the invalid field.
+     * Returns the expected type or format.
      *
-     * @return Type or format expected for the invalid field.
+     * @return Expected type or format.
      */
     public String getExpectedType() {
-        return expectedType;
+        return details.expectedType();
     }
 
     /**
-     * Returns the usage message describing the valid command format.
+     * Returns the command usage message.
      *
-     * @return Usage message describing the valid command format.
+     * @return Usage message.
      */
     public String getUsageMessage() {
-        return usageMessage;
+        return details.usageMessage();
     }
 
     /**
-     * Returns the token in the usage message that should be highlighted.
+     * Returns the usage token that should be highlighted.
      *
-     * @return Token in the usage message to highlight.
+     * @return Usage token.
      */
     public String getUsageToken() {
-        return usageToken;
+        return details.usageToken();
+    }
+
+    /**
+     * Formats structured usage details into the exception's diagnostic message.
+     *
+     * @param details Structured usage details.
+     * @return Human-readable diagnostic message.
+     */
+    private static String formatMessage(UsageDetails details) {
+        return String.format("Invalid %s for %s: %s (expected %s)",
+                details.fieldName(), details.action(), details.actualValue(), details.expectedType());
     }
 }
