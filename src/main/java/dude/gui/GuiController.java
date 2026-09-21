@@ -121,7 +121,7 @@ public class GuiController {
         String actual = "<missing>".equals(exception.getActualValue())
                 ? "that part is missing" : String.format("\"%s\" isn't valid",
                 exception.getActualValue());
-        return String.format("Hmm, the %s for %s %s. I need %s. Try: %s",
+        return String.format("Hmm, the %s for %s %s. I need %s.%nTry: %s",
                 exception.getFieldName(), exception.getAction(), actual,
                 exception.getExpectedType(), removeUsagePrefix(exception.getUsageMessage()));
     }

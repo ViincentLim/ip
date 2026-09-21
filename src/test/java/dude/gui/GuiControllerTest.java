@@ -54,7 +54,7 @@ public class GuiControllerTest {
 
         assertTrue(response.error());
         assertEquals("Hmm, the task details for todo that part is missing. "
-                + "I need non-empty text. Try: todo <task details>", response.text());
+                + "I need non-empty text.\nTry: todo <task details>", response.text());
         assertFalse(response.text().contains("Try: Usage:"));
     }
 
@@ -66,7 +66,7 @@ public class GuiControllerTest {
 
         assertTrue(response.error());
         assertEquals("Hmm, the date for on \"2025-23-12\" isn't valid. "
-                + "I need yyyy-MM-dd. Try: on <yyyy-MM-dd>", response.text());
+                + "I need yyyy-MM-dd.\nTry: on <yyyy-MM-dd>", response.text());
         assertFalse(response.text().contains("Try: Usage:"));
     }
 

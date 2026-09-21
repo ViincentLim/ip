@@ -38,11 +38,15 @@ public class TaskCell extends ListCell<Task> {
         type.getStyleClass().add("task-type");
         Label description = new Label(task.getDescription());
         description.setWrapText(true);
+        description.setMaxWidth(Double.MAX_VALUE);
         description.getStyleClass().add("task-description");
         VBox details = new VBox(2, type, description);
+        details.setMaxWidth(Double.MAX_VALUE);
         String extraDetails = getExtraDetails(task);
         if (!extraDetails.isBlank()) {
             Label extra = new Label(extraDetails);
+            extra.setWrapText(true);
+            extra.setMaxWidth(Double.MAX_VALUE);
             extra.getStyleClass().add("task-details");
             details.getChildren().add(extra);
         }
@@ -79,7 +83,7 @@ public class TaskCell extends ListCell<Task> {
         if (task instanceof Deadline deadline) {
             return "Due " + deadline.getBy();
         } else if (task instanceof Event event) {
-            return String.format("From %s to %s", event.getFrom(), event.getTo());
+            return String.format("From %s%nTo %s", event.getFrom(), event.getTo());
         }
         return "";
     }
