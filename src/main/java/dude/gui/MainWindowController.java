@@ -143,15 +143,45 @@ public class MainWindowController {
      * @param input Current command input.
      */
     private void updateCommandSuggestions(String input) {
-        String prefix = input == null ? "" : input.stripLeading().toLowerCase(Locale.ROOT);
-        if (prefix.contains(" ")) {
-            commandListView.getItems().setAll(commandUsages);
-            return;
+        commandListView.getItems().setAll(filterCommandUsages(input, commandUsages));
+    }
+
+    /**
+     * Filters the command palette while keeping the matching usage visible after
+     * the user starts entering that command's arguments.
+     *
+     * @param input Current command input.
+     * @param usages Available command usage messages.
+     * @return Usage messages relevant to the current command input.
+     */
+    static List<String> filterCommandUsages(String input, List<String> usages) {
+        String normalizedInput = input == null ? "" : input.stripLeading().toLowerCase(Locale.ROOT);
+        if (normalizedInput.isBlank()) {
+            return usages;
         }
-        commandListView.getItems().setAll(commandUsages.stream()
-                .filter(usage -> usage.substring("Usage: ".length()).toLowerCase(Locale.ROOT)
-                        .startsWith(prefix))
-                .toList());
+
+        String commandToken = normalizedInput.split("\\s+", 2)[0];
+        boolean hasArguments = normalizedInput.length() > commandToken.length();
+        if (hasArguments) {
+            return usages.stream()
+                    .filter(usage -> commandWord(usage).equals(commandToken))
+                    .toList();
+        }
+
+        return usages.stream()
+                .filter(usage -> commandWord(usage).startsWith(commandToken))
+                .toList();
+    }
+
+    /**
+     * Extracts the command word from a usage message.
+     *
+     * @param usage Usage message beginning with {@code Usage: }.
+     * @return Command word.
+     */
+    private static String commandWord(String usage) {
+        return usage.substring("Usage: ".length()).split("\\s", 2)[0]
+                .toLowerCase(Locale.ROOT);
     }
 
     /**

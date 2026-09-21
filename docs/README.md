@@ -6,11 +6,51 @@ DUDE is a desktop task manager for keeping track of todos, deadlines, and
 events. Enter commands in the conversation box, or select a command from the
 scrollable command palette.
 
+## Contents
+
+- [Getting started](#getting-started)
+- [Building from source](#building-from-source)
+- [Using the GUI](#using-the-gui)
+- [Commands](#commands)
+  - [Show all tasks](#show-all-tasks)
+  - [Add a todo](#add-a-todo)
+  - [Add a deadline](#add-a-deadline)
+  - [Add an event](#add-an-event)
+  - [Find tasks](#find-tasks)
+  - [Find tasks on a date](#find-tasks-on-a-date)
+  - [Complete or uncomplete a task](#complete-or-uncomplete-a-task)
+  - [Delete a task](#delete-a-task)
+  - [Undo a change](#undo-a-change)
+  - [Exit DUDE](#exit-dude)
+- [Duplicate tasks](#duplicate-tasks)
+- [Error messages](#error-messages)
+- [Data and troubleshooting](#data-and-troubleshooting)
+
 ## Getting started
 
-DUDE requires Java 25. From the project root, run:
+DUDE requires Java 25. Download the latest [`dude.jar`](https://github.com/ViincentLim/ip/releases/latest)
+from the [GitHub Releases page](https://github.com/ViincentLim/ip/releases), then
+place it in an empty folder.
+
+Open a terminal in that folder and run:
 
 ```bash
+java -jar dude.jar
+```
+
+DUDE stores tasks in a `data/dude.jsonl` file relative to the folder from which
+the JAR is run. Start DUDE from a folder where it can create and update this
+file.
+
+## Building from source
+
+The source code is available in the [DUDE GitHub repository](https://github.com/ViincentLim/ip).
+This section is intended for contributors and developers who want to build the
+application themselves. Clone the repository and run from its root:
+
+```bash
+git clone https://github.com/ViincentLim/ip.git
+cd ip
 ./gradlew run
 ```
 
@@ -20,9 +60,6 @@ To build and run the packaged application:
 ./gradlew clean shadowJar
 java -jar build/libs/dude.jar
 ```
-
-Tasks are saved in `data/dude.jsonl`, relative to the directory from which
-DUDE is started.
 
 ## Using the GUI
 

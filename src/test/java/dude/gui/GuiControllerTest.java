@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -92,6 +93,19 @@ public class GuiControllerTest {
         assertFalse(response.error());
         assertTrue(response.exit());
         assertTrue(response.text().contains("Catch you later"));
+    }
+
+    @Test
+    public void commandPaletteKeepsUsageVisibleWhileEnteringArguments() {
+        List<String> usages = List.of(
+                "Usage: todo <task details>",
+                "Usage: deadline <description> /by <yyyy-MM-dd [HHmm]>",
+                "Usage: event <description> /from <yyyy-MM-dd [HHmm]> /to <yyyy-MM-dd [HHmm]>");
+
+        assertEquals(List.of("Usage: deadline <description> /by <yyyy-MM-dd [HHmm]>"),
+                MainWindowController.filterCommandUsages("deadline ", usages));
+        assertEquals(List.of("Usage: deadline <description> /by <yyyy-MM-dd [HHmm]>"),
+                MainWindowController.filterCommandUsages("deadline submit report", usages));
     }
 
     @Test

@@ -29,7 +29,8 @@ rows use structured UI elements in a left sidebar rather than a raw text list, s
 task labels remain readable and retain their list numbers, CLI borders are absent from GUI bubbles, and the layout
 remains usable when the window is resized. Each task card places its type above its
 description, and the command palette keeps a constant height,
-`bye` closes the GUI after its farewell response, and cancelling a duplicate task does
+`bye` closes the GUI after its farewell response, the matching command usage remains
+visible after a command and its trailing space are typed, and cancelling a duplicate task does
 not create an empty response bubble.
 
 JUnit coverage includes date parsing and validation in `TaskDateTest`, case-insensitive
